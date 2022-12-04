@@ -1,0 +1,57 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+      naming.physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+  servlet:
+    multipart:
+      maxFileSize: 5MB
+      maxRequestSize: 5MB
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ios1.html
+    tagsSorter: alpha
+    operationsSorter: alpha
+    oauth:
+      client-secret:
+
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+
+cloud:
+  aws:
+    credentials:
+      accessKey: ${IAM_ACCESS_KEY}
+      secretKey: ${IAM_SECRET_KEY}
+    s3:
+      imageBucket: monthsub-image
+      domain: ${S3_ADDRESS}
+
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+
+security:
+  jwt:
+    header: authorization
+    issuer: monthsub
+    client-secret: ${JWT_CLIENT_SECRET}
+    expiry-seconds: 86400
+
+logging:
+  level:
+    yapp: INFO
