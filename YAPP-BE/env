@@ -1,0 +1,9 @@
+#/bin/bash
+
+ENV=/home/YAPP21-IOS1TEAM/app/.env
+
+# Show env vars
+# grep -v '^#' $ENV
+
+# Export env vars
+export $(grep -v '^#' $ENV | xargs)
