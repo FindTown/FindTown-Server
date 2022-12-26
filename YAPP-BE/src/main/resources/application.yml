@@ -1,7 +1,4 @@
 spring:
-  config:
-    activate:
-      on-profile: local
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}

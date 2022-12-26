@@ -1,4 +1,4 @@
-FROM openjdk:11-jdk-alpine AS builder
+FROM adoptopenjdk:11-jdk-hotspot AS builder
 COPY gradlew .
 COPY gradle gradle
 COPY build.gradle .
@@ -7,7 +7,7 @@ COPY src src
 RUN chmod +x ./gradlew
 RUN ./gradlew bootJar
 
-FROM adoptopenjdk:8-jdk-hotspot
+FROM adoptopenjdk:11-jdk-hotspot
 COPY --from=builder build/libs/*.jar app.jar
 
 EXPOSE 8080
