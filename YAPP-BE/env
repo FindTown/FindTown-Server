@@ -1,6 +1,6 @@
 #/bin/bash
 
-ENV=/home/YAPP21-IOS1TEAM/app/.env
+ENV=/home/ec2-user/.env
 
 # Show env vars
 # grep -v '^#' $ENV
