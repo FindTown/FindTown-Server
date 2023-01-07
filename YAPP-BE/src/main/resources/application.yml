@@ -1,8 +1,30 @@
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${CLIENT_ID}
+            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
+            client-authentication-method: POST
+            client-secret: ${CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            scope:
+              - profile_nickname
+              - account_email
+            client_name: kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+
   jpa:
     open-in-view: false
     hibernate:
@@ -45,13 +67,27 @@ cloud:
     stack:
       auto: false
 
-security:
-  jwt:
-    header: authorization
-    issuer: monthsub
-    client-secret: ${JWT_CLIENT_SECRET}
-    expiry-seconds: 86400
+jwt:
+  secret: ${JWT_SECRET_KEY}
+
+app:
+  auth:
+    tokenSecret: ${APP_TOKEN_SECRET}
+    tokenExpiry: 1800000
+    refreshTokenExpiry: 604800000
+  oauth2:
+    authorizedRedirectUris:
+      - http://localhost:8080
+      - http://18.182.80.111:8080
 
 logging:
   level:
     yapp: INFO
+
+cors:
+  allowed-origins:
+    - http://localhost:8080
+    - http://18.182.80.111:8080
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: '*'
+  max-age: 3600
