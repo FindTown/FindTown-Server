@@ -33,15 +33,34 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-//    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.navercorp.lucy:lucy-xss-servlet:2.0.1'
+    implementation 'org.jetbrains:annotations:20.1.0'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
     //DB, query DSL
     runtimeOnly 'mysql:mysql-connector-java'
     implementation 'com.querydsl:querydsl-jpa'
     implementation 'com.querydsl:querydsl-apt'
 
+    //jwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:2.3.2'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+
+    //gson
+    implementation 'com.google.code.gson:gson:2.8.7'
+
+    //swagger
+//    implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+//    implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
+//    implementation 'io.swagger.core.v3:swagger-annotations:2.2.2'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.5.12'
+    implementation 'org.springdoc:springdoc-openapi-security:1.5.12'
 
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -70,7 +89,11 @@ configurations {
     querydsl.extendsFrom compileClasspath
 }
 
-compileQuerydsl{
+springBoot {
+    buildInfo()
+}
+
+compileQuerydsl {
     options.annotationProcessorPath = configurations.querydsl
 }
 
