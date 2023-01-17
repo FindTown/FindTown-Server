@@ -1,5 +1,6 @@
 package yapp.common.oauth.handler;
 
+import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.ACCESS_TOKEN;
 import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.REFRESH_TOKEN;
 import static yapp.common.oauth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
 
@@ -13,6 +14,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -32,6 +34,7 @@ import yapp.common.utils.CookieUtil;
 import yapp.domain.member.entitiy.MemberRefreshToken;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -53,6 +56,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       logger.debug("Response has already been committed. Unable to redirect to " + targetUrl);
       return;
     }
+
+    log.info("로그인 성공성공성공 ");
 
     clearAuthenticationAttributes(request, response);
     getRedirectStrategy().sendRedirect(request, response, targetUrl);
@@ -112,12 +117,24 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     }
 
     int cookieMaxAge = (int) refreshTokenExpiry / 60;
+    int cookieMaxAgeForAccess = (int) appProperties.getAuth().getTokenExpiry() / 1000;
 
+        /*
+        Access Token 저장
+         */
+    CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
+    CookieUtil.addCookieForAccess(
+      response, ACCESS_TOKEN, accessToken.getToken(), cookieMaxAgeForAccess);
+
+        /*
+        Refresh Token 저장
+         */
     CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
     CookieUtil.addCookie(response, REFRESH_TOKEN, refreshToken.getToken(), cookieMaxAge);
 
     return UriComponentsBuilder.fromUriString(targetUrl)
       .queryParam("token", accessToken.getToken())
+      .queryParam("error", "")
       .build().toUriString();
   }
 

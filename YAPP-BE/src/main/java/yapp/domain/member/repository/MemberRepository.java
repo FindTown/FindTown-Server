@@ -7,7 +7,7 @@ import yapp.domain.member.entitiy.Member;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
-  Member findByMemberEmailAndProviderType(
+  Member findByEmailAndProviderType(
     String memberEmail,
     ProviderType providerType
   );

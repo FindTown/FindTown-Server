@@ -1,6 +1,7 @@
 package yapp.common.oauth.controller;
 
 import io.jsonwebtoken.Claims;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Date;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yapp.common.config.AppProperties;
 import yapp.common.oauth.entity.AuthReqModel;
@@ -27,9 +29,11 @@ import yapp.domain.member.entitiy.MemberPrincipal;
 import yapp.domain.member.entitiy.MemberRefreshToken;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
 
+@Slf4j
+@Tag(name = "권한 관련 API")
 @RestController
 @RequiredArgsConstructor
-@Slf4j
+@RequestMapping("/auth")
 public class AuthController {
 
   private final AppProperties appProperties;
@@ -39,6 +43,19 @@ public class AuthController {
 
   private final static long THREE_DAYS_MSEC = 259200000;
   private final static String REFRESH_TOKEN = "refresh_token";
+
+  //소셜 로그인시 발급되는 token값 반환... refresh_token은?
+//  @GetMapping(value = "/token")
+//  public String token(
+//    @RequestParam(name = "token") String token,
+//    @RequestParam(name = "error") String error
+//  ) {
+//    if (StringUtils.isNotBlank(error)) {
+//      return error;
+//    } else {
+//      return token;
+//    }
+//  }
 
   @PostMapping("/login")
   public ApiResponse login(
@@ -53,13 +70,12 @@ public class AuthController {
         authReqModel.getPassword()
       )
     );
-
-    String email = authReqModel.getId();
+    String id = authReqModel.getId();
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Date now = new Date();
     AuthToken accessToken = tokenProvider.createAuthToken(
-      email,
+      id,
       ((MemberPrincipal) authentication.getPrincipal()).getRoleType().getCode(),
       new Date(now.getTime() + appProperties.getAuth().getTokenExpiry())
     );
@@ -70,9 +86,9 @@ public class AuthController {
       new Date(now.getTime() + refreshTokenExpiry)
     );
 
-    MemberRefreshToken memberRefreshToken = memberRefreshTokenRepository.findByMemberId(email);
+    MemberRefreshToken memberRefreshToken = memberRefreshTokenRepository.findByMemberId(id);
     if (memberRefreshToken == null) {
-      memberRefreshToken = new MemberRefreshToken(email, refreshToken.getToken());
+      memberRefreshToken = new MemberRefreshToken(id, refreshToken.getToken());
       memberRefreshTokenRepository.saveAndFlush(memberRefreshToken);
     } else {
       memberRefreshToken.setRefreshToken(refreshToken.getToken());

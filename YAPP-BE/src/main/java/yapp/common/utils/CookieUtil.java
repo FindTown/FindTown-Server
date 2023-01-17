@@ -25,6 +25,24 @@ public class CookieUtil {
     return Optional.empty();
   }
 
+  /*
+  httpOnly 권한을 풀고 access 토큰을 저장하기 위함
+   */
+  public static void addCookieForAccess(
+    HttpServletResponse response,
+    String name,
+    String value,
+    int maxAge
+  ) {
+    Cookie cookie = new Cookie(name, value);
+    cookie.setPath("/");
+    cookie.setHttpOnly(false);
+    cookie.setMaxAge(maxAge);
+
+    response.addCookie(cookie);
+  }
+
+
   public static void addCookie(
     HttpServletResponse response,
     String name,

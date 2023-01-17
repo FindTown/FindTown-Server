@@ -45,6 +45,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .passwordEncoder(passwordEncoder());
   }
 
+//  @Override
+//  public void configure(WebSecurity web) throws Exception {
+//    web.ignoring().antMatchers("/static/css/**, /static/js/**, *.ico");
+//
+//    // swagger
+//    web.ignoring().antMatchers(
+//      "/v2/api-docs", "/configuration/ui",
+//      "/swagger-resources", "/configuration/security",
+//      "/swagger-ui.html", "/webjars/**", "/swagger/**", "/swagger-ui/index.html"
+//    );
+//  }
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http
@@ -53,22 +65,44 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .sessionManagement()
       .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
       .and()
-      .csrf().disable()
-      .formLogin().disable()
-      .httpBasic().disable()
+      .csrf()
+      .disable()
+      .formLogin()
+      .disable()
+      .httpBasic()
+      .disable()
+      .authorizeRequests()
+      .requestMatchers(CorsUtils::isPreFlightRequest)
+      .permitAll()
+      .antMatchers(
+        "/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html",
+        "/**/*.css", "/**/*.js"
+      )
+      .permitAll()
+      .antMatchers("/auth/token", "/oauth2/**")
+      .permitAll() // Security 허용 Url      .antMatchers("/login").permitAll()
+      .antMatchers("/register")
+      .permitAll()
+      .antMatchers("/register/**")
+      .permitAll()
+      .antMatchers("/app/members/kakao")
+      .permitAll()
+      .antMatchers("/refresh")
+      .permitAll()
+      .antMatchers("/member/**")
+      .hasAnyAuthority(RoleType.USER.getCode())
+      .antMatchers("/api/**/admin/**")
+      .hasAnyAuthority(RoleType.ADMIN.getCode())
+      .antMatchers("/swagger-resources/**")
+      .permitAll()
+      .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-town-scoop.html")
+      .permitAll()
+      .anyRequest()
+      .authenticated()
+      .and()
       .exceptionHandling()
       .authenticationEntryPoint(new RestAuthenticationEntryPoint())
       .accessDeniedHandler(tokenAccessDeniedHandler)
-      .and()
-      .authorizeRequests()
-      .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-      .antMatchers("/login").permitAll()
-      .antMatchers("/register").permitAll()
-      .antMatchers("/register/**").permitAll()
-      .antMatchers("/refresh").permitAll()
-      .antMatchers("/member/**").hasAnyAuthority(RoleType.USER.getCode())
-      .antMatchers("/api/**/admin/**").hasAnyAuthority(RoleType.ADMIN.getCode())
-      .anyRequest().authenticated()
       .and()
       .oauth2Login()
       .authorizationEndpoint()

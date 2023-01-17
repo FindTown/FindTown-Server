@@ -13,15 +13,4 @@ public interface MemberRefreshTokenRepository extends JpaRepository<MemberRefres
     String memberId,
     String refreshToken
   );
-
-//  MemberRefreshToken findByMemberEmailAndProviderType(
-//    String memberEmail,
-//    ProviderType providerType
-//  );
-//
-//  MemberRefreshToken findByMemberEmailAndRefreshTokenAndProviderType(
-//    @NotNull @Size(max = 64) String memberEmail,
-//    @NotNull @Size(max = 256) String refreshToken,
-//    @NotNull ProviderType providerType
-//  );
 }

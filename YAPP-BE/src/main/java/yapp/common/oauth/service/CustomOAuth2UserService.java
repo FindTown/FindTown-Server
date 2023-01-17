@@ -1,6 +1,7 @@
 package yapp.common.oauth.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -16,6 +17,7 @@ import yapp.domain.member.entitiy.Member;
 import yapp.domain.member.entitiy.MemberPrincipal;
 import yapp.domain.member.repository.MemberRepository;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -43,7 +45,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     OAuth2UserInfo memberInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(
       providerType, user.getAttributes());
 
-    Member savedMember = memberRepository.findByMemberEmailAndProviderType(
+    Member savedMember = memberRepository.findByEmailAndProviderType(
       memberInfo.getEmail(), providerType);
 
     if (savedMember != null) {
@@ -53,9 +55,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             + "계정 타입이 일치하지 않습니다."
         );
       }
+      log.info("로그인을 한다면 여길 타고 흘러 갈듯!! 회원정보 조회해보자(이미 회원) : {}", savedMember.getEmail());
       updateMember(savedMember, memberInfo);
     } else {
       savedMember = createMember(memberInfo, providerType); // 회원가입 할때 로직 수정 필요!!
+      log.info("로그인을 한다면 여길 타고 흘러 갈듯!! 회원정보 조회해보자(회원 아님) : {}", savedMember.getEmail());
     }
 
     return MemberPrincipal.create(savedMember, user.getAttributes());
@@ -92,7 +96,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
       null,
       null
     );
-
     return memberRepository.save(member);
   }
 }

@@ -17,7 +17,7 @@ public class Resident {
   @Column(name = "resident_year")
   private int residentYear;
 
-  @Column(name = "residnet_month")
+  @Column(name = "resident_month")
   private int residentMonth;
 
   public Resident(
