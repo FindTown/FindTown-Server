@@ -2,3 +2,46 @@ spring:
   config:
     activate:
       on-profile: prod
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${CLIENT_ID}
+            redirect-uri: http://${SERVER_IP}/app/members/kakao
+            client-authentication-method: POST
+            client-secret: ${CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            scope:
+              - profile_nickname
+              - account_email
+            client_name: kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+social-kakao:
+  clientId: ${CLIENT_ID}
+  redirectUri: http://${SERVER_IP}/app/members/kakao
+  clientSecret: ${CLIENT_SECRET}
+
+app:
+  auth:
+    tokenSecret: ${APP_TOKEN_SECRET}
+    tokenExpiry: 1800000
+    refreshTokenExpiry: 604800000
+  oauth2:
+    authorizedRedirectUris:
+      - http://${SERVER_IP}/app/members/kakao
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false

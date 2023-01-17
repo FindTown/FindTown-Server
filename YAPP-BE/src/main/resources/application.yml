@@ -1,24 +1,18 @@
 spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          kakao:
-            client-id: ${CLIENT_ID}
-            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
-            client-authentication-method: POST
-            client-secret: ${CLIENT_SECRET}
-            authorization-grant-type: authorization_code
-            scope:
-              - profile_nickname
-              - account_email
-            client_name: kakao
-        provider:
-          kakao:
-            authorization-uri: https://kauth.kakao.com/oauth/authorize
-            token-uri: https://kauth.kakao.com/oauth/token
-            user-info-uri: https://kapi.kakao.com/v2/user/me
-            user-name-attribute: id
+  profiles:
+    active: local
+    group:
+      local:
+        - common
+      prod:
+        - common
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: common
 
   datasource:
     url: ${DB_URL}
@@ -38,11 +32,9 @@ spring:
 
 springdoc:
   swagger-ui:
-    path: /swagger-ios1.html
+    path: /swagger-town-scoop.html
     tagsSorter: alpha
     operationsSorter: alpha
-    oauth:
-      client-secret:
 
 server:
   servlet:
@@ -53,41 +45,18 @@ server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
 
-cloud:
-  aws:
-    credentials:
-      accessKey: ${IAM_ACCESS_KEY}
-      secretKey: ${IAM_SECRET_KEY}
-    s3:
-      imageBucket: monthsub-image
-      domain: ${S3_ADDRESS}
-
-    region:
-      static: ap-northeast-2
-    stack:
-      auto: false
-
 jwt:
   secret: ${JWT_SECRET_KEY}
-
-app:
-  auth:
-    tokenSecret: ${APP_TOKEN_SECRET}
-    tokenExpiry: 1800000
-    refreshTokenExpiry: 604800000
-  oauth2:
-    authorizedRedirectUris:
-      - http://localhost:8080
-      - http://18.182.80.111:8080
 
 logging:
   level:
     yapp: INFO
 
 cors:
-  allowed-origins:
-    - http://localhost:8080
-    - http://18.182.80.111:8080
+  allowed-origins: http://localhost:8080, http://${SERVER_IP}
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS
   allowed-headers: '*'
   max-age: 3600
+  
+ip:
+  town-scoop: ${SERVER_IP}

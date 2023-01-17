@@ -40,7 +40,7 @@ dependencies {
     implementation 'org.jetbrains:annotations:20.1.0'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-    
+
     //DB, query DSL
     runtimeOnly 'mysql:mysql-connector-java'
     implementation 'com.querydsl:querydsl-jpa'
@@ -51,6 +51,16 @@ dependencies {
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:2.3.2'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+
+    //gson
+    implementation 'com.google.code.gson:gson:2.8.7'
+
+    //swagger
+//    implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+//    implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
+//    implementation 'io.swagger.core.v3:swagger-annotations:2.2.2'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.5.12'
+    implementation 'org.springdoc:springdoc-openapi-security:1.5.12'
 
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -77,6 +87,10 @@ sourceSets {
 }
 configurations {
     querydsl.extendsFrom compileClasspath
+}
+
+springBoot {
+    buildInfo()
 }
 
 compileQuerydsl {
