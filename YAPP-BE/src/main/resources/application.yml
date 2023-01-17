@@ -1,8 +1,24 @@
 spring:
+  profiles:
+    active: local
+    group:
+      local:
+        - common
+      prod:
+        - common
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: common
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+
   jpa:
     open-in-view: false
     hibernate:
@@ -16,11 +32,9 @@ spring:
 
 springdoc:
   swagger-ui:
-    path: /swagger-ios1.html
+    path: /swagger-town-scoop.html
     tagsSorter: alpha
     operationsSorter: alpha
-    oauth:
-      client-secret:
 
 server:
   servlet:
@@ -31,27 +45,18 @@ server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
 
-cloud:
-  aws:
-    credentials:
-      accessKey: ${IAM_ACCESS_KEY}
-      secretKey: ${IAM_SECRET_KEY}
-    s3:
-      imageBucket: monthsub-image
-      domain: ${S3_ADDRESS}
-
-    region:
-      static: ap-northeast-2
-    stack:
-      auto: false
-
-security:
-  jwt:
-    header: authorization
-    issuer: monthsub
-    client-secret: ${JWT_CLIENT_SECRET}
-    expiry-seconds: 86400
+jwt:
+  secret: ${JWT_SECRET_KEY}
 
 logging:
   level:
     yapp: INFO
+
+cors:
+  allowed-origins: http://localhost:8080, http://${SERVER_IP}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: '*'
+  max-age: 3600
+  
+ip:
+  town-scoop: ${SERVER_IP}
