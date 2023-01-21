@@ -1,164 +1,106 @@
 package yapp.common.oauth.controller;
 
 import io.jsonwebtoken.Claims;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yapp.common.config.AppProperties;
-import yapp.common.oauth.entity.AuthReqModel;
 import yapp.common.oauth.entity.RoleType;
 import yapp.common.oauth.token.AuthToken;
 import yapp.common.oauth.token.AuthTokenProvider;
 import yapp.common.response.ApiResponse;
+import yapp.common.security.CurrentAuthPrincipal;
 import yapp.common.utils.CookieUtil;
 import yapp.common.utils.HeaderUtil;
-import yapp.domain.member.entitiy.MemberPrincipal;
 import yapp.domain.member.entitiy.MemberRefreshToken;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
 
 @Slf4j
-@Tag(name = "권한 관련 API")
+@Tag(name = "권한 인증")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
 
   private final AppProperties appProperties;
   private final AuthTokenProvider tokenProvider;
-  private final AuthenticationManager authenticationManager;
   private final MemberRefreshTokenRepository memberRefreshTokenRepository;
-
-  private final static long THREE_DAYS_MSEC = 259200000;
   private final static String REFRESH_TOKEN = "refresh_token";
 
-  //소셜 로그인시 발급되는 token값 반환... refresh_token은?
-//  @GetMapping(value = "/token")
-//  public String token(
-//    @RequestParam(name = "token") String token,
-//    @RequestParam(name = "error") String error
-//  ) {
-//    if (StringUtils.isNotBlank(error)) {
-//      return error;
-//    } else {
-//      return token;
-//    }
-//  }
-
-  @PostMapping("/login")
-  public ApiResponse login(
-    HttpServletRequest request,
-    HttpServletResponse response,
-    @RequestBody AuthReqModel authReqModel
+  public AuthController(
+    AppProperties appProperties,
+    AuthTokenProvider tokenProvider,
+    MemberRefreshTokenRepository memberRefreshTokenRepository
   ) {
-    log.info("/login");
-    Authentication authentication = authenticationManager.authenticate(
-      new UsernamePasswordAuthenticationToken(
-        authReqModel.getId(),
-        authReqModel.getPassword()
-      )
-    );
-    String id = authReqModel.getId();
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-    Date now = new Date();
-    AuthToken accessToken = tokenProvider.createAuthToken(
-      id,
-      ((MemberPrincipal) authentication.getPrincipal()).getRoleType().getCode(),
-      new Date(now.getTime() + appProperties.getAuth().getTokenExpiry())
-    );
-
-    long refreshTokenExpiry = appProperties.getAuth().getRefreshTokenExpiry();
-    AuthToken refreshToken = tokenProvider.createAuthToken(
-      appProperties.getAuth().getTokenSecret(),
-      new Date(now.getTime() + refreshTokenExpiry)
-    );
-
-    MemberRefreshToken memberRefreshToken = memberRefreshTokenRepository.findByMemberId(id);
-    if (memberRefreshToken == null) {
-      memberRefreshToken = new MemberRefreshToken(id, refreshToken.getToken());
-      memberRefreshTokenRepository.saveAndFlush(memberRefreshToken);
-    } else {
-      memberRefreshToken.setRefreshToken(refreshToken.getToken());
-    }
-
-    int cookieMaxAge = (int) refreshTokenExpiry / 60;
-    CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
-    CookieUtil.addCookie(response, REFRESH_TOKEN, refreshToken.getToken(), cookieMaxAge);
-
-    return ApiResponse.success("token", accessToken.getToken());
+    this.appProperties = appProperties;
+    this.tokenProvider = tokenProvider;
+    this.memberRefreshTokenRepository = memberRefreshTokenRepository;
   }
 
-  @GetMapping("/refresh")
-  public ApiResponse refreshToken(
-    HttpServletRequest request,
-    HttpServletResponse response
+  @PostMapping("/login/confirm")
+  @Operation(summary = "access_token으로 회원 ID , 권한 정보 확인")
+  public ApiResponse checkLoginConfirm(
+    @CurrentAuthPrincipal User memberPrincipal
+  ) {
+    Map<String, Object> result = new HashMap<>();
+    result.put("회원 id", memberPrincipal.getUsername());
+    result.put("회원 권한 정보", memberPrincipal.getAuthorities());
+
+    return ApiResponse.success("소셜 로그인 회원 정보", result);
+  }
+
+  @PostMapping("/reissue/token")
+  @Operation(summary = "access_token 재발급")
+  public ApiResponse reissueRefreshToken(
+    HttpServletRequest request
   ) {
     String accessToken = HeaderUtil.getAccessToken(request);
+    String refreshToken = CookieUtil.getCookie(request, REFRESH_TOKEN)
+      .map(Cookie::getValue)
+      .orElse((null));
     AuthToken authToken = tokenProvider.convertAuthToken(accessToken);
-    if (!authToken.validate()) {
-      return ApiResponse.invalidAccessToken();
-    }
 
+    Date now = new Date();
     Claims claims = authToken.getExpiredTokenClaims();
     if (claims == null) {
       return ApiResponse.notExpiredTokenYet();
     }
-
     String memberId = claims.getSubject();
+    AuthToken authRefreshToken = tokenProvider.convertAuthToken(refreshToken);
     RoleType roleType = RoleType.of(claims.get("role", String.class));
 
-    String refreshToken = CookieUtil.getCookie(request, REFRESH_TOKEN)
-      .map(Cookie::getValue)
-      .orElse((null));
-    AuthToken authRefreshToken = tokenProvider.convertAuthToken(refreshToken);
+    if (!authToken.validate()) {
+      log.info("만료된 Access 토큰입니다. 재발급이 필요합니다.");
+      if (authRefreshToken.validate()) {
+        log.info("유효한 Refresh 토큰입니다.");
 
-    if (authRefreshToken.validate()) {
+        MemberRefreshToken memberRefreshToken = memberRefreshTokenRepository.findByMemberIdAndRefreshToken(
+          memberId, refreshToken);
+        if (memberRefreshToken == null) {
+          log.info("Refresh 토큰이 null 입니다.");
+          return ApiResponse.invalidRefreshToken();
+        }
+        if (memberRefreshToken.getRefreshToken().equals(refreshToken)) {
+          log.info("access_token 재발급!");
+          AuthToken newAccessToken = tokenProvider.createAuthToken(
+            memberId,
+            roleType.getCode(),
+            new Date(now.getTime() + appProperties.getAuth().getTokenExpiry())
+          );
+          return ApiResponse.success("access_token", newAccessToken);
+        }
+        return ApiResponse.invalidRefreshToken();
+      }
       return ApiResponse.invalidRefreshToken();
     }
-
-    MemberRefreshToken memberRefreshToken = memberRefreshTokenRepository.findByMemberIdAndRefreshToken(
-      memberId, refreshToken);
-    if (memberRefreshToken == null) {
-      return ApiResponse.invalidRefreshToken();
-    }
-
-    Date now = new Date();
-    AuthToken newAccessToken = tokenProvider.createAuthToken(
-      memberId,
-      roleType.getCode(),
-      new Date(now.getTime() + appProperties.getAuth().getTokenExpiry())
-    );
-
-    long validTime = authRefreshToken.getTokenClaims().getExpiration().getTime() - now.getTime();
-
-    if (validTime <= THREE_DAYS_MSEC) {
-      long refreshTokenExpiry = appProperties.getAuth().getRefreshTokenExpiry();
-
-      authRefreshToken = tokenProvider.createAuthToken(
-        appProperties.getAuth().getTokenSecret(),
-        new Date(now.getTime() + refreshTokenExpiry)
-      );
-
-      memberRefreshToken.setRefreshToken(authRefreshToken.getToken());
-
-      int cookieMaxAge = (int) refreshTokenExpiry / 60;
-      CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
-      CookieUtil.addCookie(response, REFRESH_TOKEN, authRefreshToken.getToken(), cookieMaxAge);
-    }
-
-    return ApiResponse.success("token", newAccessToken.getToken());
+    return ApiResponse.success("access_token", accessToken);
   }
 }
