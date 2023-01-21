@@ -18,6 +18,7 @@ public class ApiResponse<T> {
   private final static String INVALID_ACCESS_TOKEN = "유효하지 않은 ACCESS TOKEN 입니다.";
   private final static String INVALID_REFRESH_TOKEN = "유효하지 않은 REFRESH TOKEN 입니다.";
   private final static String NOT_EXPIRED_TOKEN_YET = "아직 토큰이 만료되지 않았습니다.";
+  private final static String FAILED_SIGNUP = "회원 가입에 실패하였습니다.";
 
   private final ApiResponseHeader header;
   private final Map<String, T> body;
@@ -38,6 +39,10 @@ public class ApiResponse<T> {
 
   public static <T> ApiResponse<T> fail() {
     return new ApiResponse(new ApiResponseHeader(FAILED, FAILED_MESSAGE), null);
+  }
+
+  public static <T> ApiResponse<T> signUpFail() {
+    return new ApiResponse(new ApiResponseHeader(FAILED, FAILED_SIGNUP), null);
   }
 
   public static <T> ApiResponse<T> invalidAccessToken() {

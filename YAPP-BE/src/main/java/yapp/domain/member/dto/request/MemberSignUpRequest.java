@@ -1,20 +1,18 @@
-package yapp.domain.member.dto;
+package yapp.domain.member.dto.request;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import yapp.common.oauth.entity.ProviderType;
-import yapp.common.oauth.entity.RoleType;
 import yapp.domain.member.entitiy.Resident;
 
 @Getter
 @Setter
-public class MemberInfoDto {
-  private String memberId;
-  private String email;
+@Builder
+public class MemberSignUpRequest {
   private String nickname;
   private ProviderType providerType;
-  private RoleType roleType;
-  private String interestTownId;
+  private Long objectId;
   private Resident resident;
   private String useAgreeYn;
   private String privacyAgreeYn;

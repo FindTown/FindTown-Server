@@ -83,6 +83,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       authToken.getAuthorizedClientRegistrationId().toUpperCase());
 
     OidcUser user = ((OidcUser) authentication.getPrincipal());
+
+    // 애플 로그인 추가시 여기도 provider에 따라 나눠 주는 로직 추가!
     OAuth2UserInfo memberInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(
       providerType, user.getAttributes());
     Collection<? extends GrantedAuthority> authorities = ((OidcUser) authentication.getPrincipal()).getAuthorities();
@@ -97,6 +99,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       new Date(now.getTime() + appProperties.getAuth().getTokenExpiry())
     );
 
+    log.info(
+      "[determineTargetUrl] accessToken!! id, expiredTokenClaims 생성 : {}, {}, {}",
+      accessToken.getToken(), accessToken.getId(), accessToken.getExpiredTokenClaims()
+    );
+
     // refresh 토큰 설정
     long refreshTokenExpiry = appProperties.getAuth().getRefreshTokenExpiry();
 
@@ -105,16 +112,28 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       new Date(now.getTime() + refreshTokenExpiry)
     );
 
+    log.info(
+      "[determineTargetUrl] refreshToken!! id, expiredTokenClaims 생성 : {}, {}, {}",
+      refreshToken.getToken(), refreshToken.getId(), refreshToken.getExpiredTokenClaims()
+    );
+
     // DB 저장
     MemberRefreshToken memberRefreshToken = memberRefreshTokenRepository.findByMemberId(
       memberInfo.getMemberId());
+
+    log.info(
+      "[determineTargetUrl - member 조회] : {}, {}, {}", memberInfo.getMemberId(),
+      memberInfo.getEmail(), memberInfo.getNickname()
+    );
+
     if (memberRefreshToken != null) {
       memberRefreshToken.setRefreshToken(refreshToken.getToken());
     } else {
       memberRefreshToken = new MemberRefreshToken(
         memberInfo.getMemberId(), refreshToken.getToken());
-      memberRefreshTokenRepository.saveAndFlush(memberRefreshToken);
     }
+    // refresh 토큰 upsert
+    memberRefreshTokenRepository.saveAndFlush(memberRefreshToken);
 
     int cookieMaxAge = (int) refreshTokenExpiry / 60;
     int cookieMaxAgeForAccess = (int) appProperties.getAuth().getTokenExpiry() / 1000;

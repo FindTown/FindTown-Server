@@ -2,21 +2,25 @@ package yapp.domain.member.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import yapp.common.response.ApiResponse;
+import yapp.common.security.CurrentAuthPrincipal;
 import yapp.common.utils.CookieUtil;
-import yapp.domain.member.dto.MemberAccountDto;
-import yapp.domain.member.dto.MemberInfoDto;
+import yapp.domain.member.dto.request.MemberSignUpRequest;
+import yapp.domain.member.dto.response.MemberInfoResponse;
 import yapp.domain.member.service.MemberService;
 
 @RestController
@@ -30,42 +34,52 @@ public class MemberController {
   public final static String ACCESS_TOKEN = "access_token";
   private final static String REFRESH_TOKEN = "refresh_token";
 
-  @GetMapping("/kakao")
-  @Operation(summary = "로그인", description = "http://{서버IP}:8080/oauth2/authorization/kakao?redirect_uri=http://{서버IP}:8080/app/members/kakao 으로 최초 접속해야만 토큰 발행")
-  @Tag(name = "[화면]-로그인")
-  public ApiResponse getTokenBykakaoLogin(@RequestParam("code") String code) {
-    Map<String, String> kakaoToken = memberService.getKaKaoAccessToken(code);
-//    HashMap<String, Object> memberInfo = memberService.getUserInfo(kakaoToken.get("access_token"));
-    return ApiResponse.success("AcessToken, RefreshToken", kakaoToken);
-  }
-
-  // 회원 정보 조회
   @GetMapping("/info")
+  @PreAuthorize("hasRole('USER')")
   @Operation(summary = "내 정보 확인")
   @Tag(name = "[화면]-마이페이지")
   public ApiResponse getMemberInfo(
-    @RequestBody MemberAccountDto memberAccountDto
+    @CurrentAuthPrincipal User memberPrincipal
   ) {
-//    loadUserByUsername
-//    memberService.getMemberInfo(memberAccountDto);
-//    HashMap<String, Object> tokenPrivider = memberService
-    return ApiResponse.success("회원 정보 조회", "");
+    System.out.println("memberPricipal : " + memberPrincipal.toString());
+    System.out.println("get Id : " + memberPrincipal.getUsername());
+    MemberInfoResponse memberInfoResponse = this.memberService.getMemberInfo(
+      memberPrincipal.getUsername());
+    return ApiResponse.success("member_info", memberInfoResponse);
   }
 
-  //회원 가입
   @PostMapping("/signup")
+  @PreAuthorize("hasRole('USER')")
   @Operation(summary = "회원가입")
   @Tag(name = "[화면]-로그인")
-  public ApiResponse kakaoLoginAccessToken(
-    @RequestHeader("access_token") String accessToken,
-    @RequestBody MemberInfoDto memberInfoDto
+  public ApiResponse socialSignUp(
+    @CurrentAuthPrincipal User memberPrincipal,
+    @RequestBody MemberSignUpRequest memberSignUpRequest
   ) {
-    Map<String, String> token = memberService.getKaKaoAccessToken(accessToken);
+    String memberId = this.memberService.memberSignUp(
+      memberSignUpRequest, memberPrincipal.getUsername());
+    if (StringUtils.hasText(memberId)) {
+      return ApiResponse.success("signup", true);
+    }
+    return ApiResponse.signUpFail();
+  }
 
-    return ApiResponse.success("회원 가입 성공", token);
+  @GetMapping("/check/nickname")
+  @Operation(summary = "닉네임 중복 확인")
+  @Tag(name = "[화면]-회원가입")
+  public ApiResponse checkNickname(
+    @RequestParam(name = "nickname") String nickname
+  ) {
+    Map<String, Boolean> result = new HashMap<>();
+    boolean duplicateConfirm = this.memberService.checkDuplicateNickname(nickname);
+    result.put("existence", duplicateConfirm);
+
+    return duplicateConfirm ? ApiResponse.success("exist_confirm", duplicateConfirm)
+      : ApiResponse.success("exist_confirm", result);
   }
 
   @GetMapping("/logout")
+  @PreAuthorize("hasRole('USER')")
   @Operation(summary = "로그 아웃")
   @Tag(name = "[화면]-마이페이지")
   public ApiResponse logout(
@@ -75,7 +89,6 @@ public class MemberController {
     CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
     CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
 
-    return ApiResponse.success("로그 아웃", "");
+    return ApiResponse.success("logout", true);
   }
-
 }

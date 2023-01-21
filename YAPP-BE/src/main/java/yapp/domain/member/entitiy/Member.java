@@ -19,6 +19,7 @@ import yapp.common.config.Const;
 import yapp.common.domain.BaseEntity;
 import yapp.common.oauth.entity.ProviderType;
 import yapp.common.oauth.entity.RoleType;
+import yapp.domain.member.dto.request.MemberSignUpRequest;
 
 @Entity
 @Getter
@@ -57,9 +58,6 @@ public class Member extends BaseEntity {
   @NotNull
   private RoleType roleType;
 
-  @Column(name = "interest_town_id")
-  private String interestTownId; //objec_id 의미
-
   @Embedded
   private Resident resident;
 
@@ -68,6 +66,9 @@ public class Member extends BaseEntity {
 
   @Column(name = "privacy_agree_yn") //이용약관 동의2
   private String privacyAgreeYn;
+
+  @Column(name = "use_status", columnDefinition = "TINYINT")
+  private int useStatus;
 
   public void setEmail(String email) {
     this.email = email;
@@ -81,16 +82,30 @@ public class Member extends BaseEntity {
     this.nickname = nickname;
   }
 
+  public void changeMemberStatus(
+    int useStatus
+  ) {
+    this.useStatus = useStatus;
+  }
+
+  public void setSignUp(MemberSignUpRequest memberSignUpRequest) {
+    this.nickname = memberSignUpRequest.getNickname();
+    this.providerType = memberSignUpRequest.getProviderType();
+    this.resident = memberSignUpRequest.getResident();
+    this.useAgreeYn = memberSignUpRequest.getUseAgreeYn();
+    this.privacyAgreeYn = memberSignUpRequest.getPrivacyAgreeYn();
+  }
+
   public Member(
     String memberId,
     String email,
     String nickname,
     ProviderType providerType,
     RoleType roleType,
-    String interestTownId,
     Resident resident,
     String useAgreeYn,
-    String privacyAgreeYn
+    String privacyAgreeYn,
+    int useStatus
   ) {
     this.memberId = memberId;
     this.email = email;
@@ -98,10 +113,10 @@ public class Member extends BaseEntity {
     this.password = Const.DEFAULT_PASSWORD;
     this.providerType = providerType;
     this.roleType = roleType;
-    this.interestTownId = interestTownId;
     this.resident = resident;
     this.useAgreeYn = useAgreeYn;
     this.privacyAgreeYn = privacyAgreeYn;
+    this.useStatus = useStatus;
   }
 }
 

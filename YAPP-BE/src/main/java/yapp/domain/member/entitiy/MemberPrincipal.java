@@ -22,7 +22,7 @@ import yapp.common.oauth.entity.RoleType;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class MemberPrincipal implements OAuth2User, UserDetails, OidcUser {
-  private final String memberEmail;
+  private final String memberId;
   private final String password;
   private final ProviderType providerType;
   private final RoleType roleType;
@@ -41,12 +41,12 @@ public class MemberPrincipal implements OAuth2User, UserDetails, OidcUser {
 
   @Override
   public String getName() {
-    return memberEmail;
+    return memberId;
   }
 
   @Override
   public String getUsername() {
-    return memberEmail;
+    return memberId;
   }
 
   @Override

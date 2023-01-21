@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import yapp.common.oauth.token.AuthToken;
 import yapp.common.oauth.token.AuthTokenProvider;
@@ -29,7 +30,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     String tokenStr = HeaderUtil.getAccessToken(request);
     AuthToken token = tokenProvider.convertAuthToken(tokenStr);
 
-    if (tokenStr != null && token.validate()) {
+    if (StringUtils.hasText(tokenStr) && token.validate()) {
       Authentication authentication = tokenProvider.getAuthentication(token);
       SecurityContextHolder.getContext().setAuthentication(authentication);
     }
