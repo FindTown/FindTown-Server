@@ -21,6 +21,7 @@ public class OpenAPIConfig {
   @Value("${ip.town-scoop}")
   private String SEVER_IP;
   private static final String PROD = "prod";
+  private static final String EXCEPT = "except";
   private final Environment environment;
 
   public OpenAPIConfig(
@@ -32,7 +33,7 @@ public class OpenAPIConfig {
   @Bean
   public OpenApiCustomiser customOpenAPI(BuildProperties buildProperties) {
     return openAPI -> {
-      if (!Arrays.asList(environment.getActiveProfiles()).contains(PROD)) {
+      if (!Arrays.asList(environment.getActiveProfiles()).contains(EXCEPT)) {
         openAPI.info(
             new Info()
               .title("TownScoop API")
