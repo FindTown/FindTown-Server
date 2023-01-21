@@ -15,7 +15,7 @@ spring:
         registration:
           kakao:
             client-id: ${CLIENT_ID}
-            redirect-uri: http://localhost:8080/app/members/kakao
+            redirect-uri: http://localhost:8080/oauth2/callback/kakao
             client-authentication-method: POST
             client-secret: ${CLIENT_SECRET}
             authorization-grant-type: authorization_code
@@ -32,7 +32,7 @@ spring:
 
 social-kakao:
   clientId: ${CLIENT_ID}
-  redirectUri: http://localhost:8080/app/members/kakao
+  redirectUri: http://localhost:8080/oauth2/callback/kakao
   clientSecret: ${CLIENT_SECRET}
 
 cors:
@@ -48,7 +48,7 @@ app:
     refreshTokenExpiry: 604800000
   oauth2:
     authorizedRedirectUris:
-      - http://localhost:8080/app/members/kakao
+      - http://localhost:8080/oauth2/callback/kakao
 
 logging:
   level:

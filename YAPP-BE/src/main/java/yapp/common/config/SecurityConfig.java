@@ -45,18 +45,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .passwordEncoder(passwordEncoder());
   }
 
-//  @Override
-//  public void configure(WebSecurity web) throws Exception {
-//    web.ignoring().antMatchers("/static/css/**, /static/js/**, *.ico");
-//
-//    // swagger
-//    web.ignoring().antMatchers(
-//      "/v2/api-docs", "/configuration/ui",
-//      "/swagger-resources", "/configuration/security",
-//      "/swagger-ui.html", "/webjars/**", "/swagger/**", "/swagger-ui/index.html"
-//    );
-//  }
-
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http
@@ -79,13 +67,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         "/**/*.css", "/**/*.js"
       )
       .permitAll()
-      .antMatchers("/auth/token", "/oauth2/**")
+      .antMatchers("/auth/token", "/oauth2/**", "/auth/**")
       .permitAll() // Security 허용 Url      .antMatchers("/login").permitAll()
       .antMatchers("/register")
       .permitAll()
       .antMatchers("/register/**")
       .permitAll()
-      .antMatchers("/app/members/kakao")
+      .antMatchers("/app/members/**")
       .permitAll()
       .antMatchers("/refresh")
       .permitAll()
@@ -110,14 +98,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .authorizationRequestRepository(oAuth2AuthorizationRequestBasedOnCookieRepository())
       .and()
       .redirectionEndpoint()
-      .baseUri("/*/oauth2/code/*")
+      .baseUri("/oauth2/callback/*")
       .and()
       .userInfoEndpoint()
       .userService(oAuth2UserService)
       .and()
       .successHandler(oAuth2AuthenticationSuccessHandler())
       .failureHandler(oAuth2AuthenticationFailureHandler());
-
     http.addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
   }
 

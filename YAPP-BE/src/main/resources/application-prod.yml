@@ -46,8 +46,8 @@ cors:
   allowed-headers: '*'
   max-age: 3600
 
-springdoc:
-  swagger-ui:
-    enabled: false
-  api-docs:
-    enabled: false
+#springdoc:
+#  swagger-ui:
+#    enabled: false
+#  api-docs:
+#    enabled: false

@@ -1,5 +1,6 @@
 package yapp.common.oauth.service;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -45,24 +46,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     OAuth2UserInfo memberInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(
       providerType, user.getAttributes());
 
-    Member savedMember = memberRepository.findByEmailAndProviderType(
+    Optional<Member> savedMember = memberRepository.findByEmailAndProviderType(
       memberInfo.getEmail(), providerType);
 
-    if (savedMember != null) {
-      if (providerType != savedMember.getProviderType()) {
+    if (savedMember.isPresent()) {
+      if (providerType != savedMember.get().getProviderType()) {
         throw new OAuthProviderMissMatchException(
-          "요청한 " + providerType + "계정의 로그인 타입과 저장된 회원의 " + savedMember.getProviderType()
+          "요청한 " + providerType + "계정의 로그인 타입과 저장된 회원의 " + savedMember.get().getProviderType()
             + "계정 타입이 일치하지 않습니다."
         );
       }
-      log.info("로그인을 한다면 여길 타고 흘러 갈듯!! 회원정보 조회해보자(이미 회원) : {}", savedMember.getEmail());
-      updateMember(savedMember, memberInfo);
+      log.info("로그인을 한다면 여길 타고 흘러 갈듯!! 회원정보 조회해보자(이미 회원) : {}", savedMember.get().getEmail());
+      updateMember(savedMember.get(), memberInfo);
     } else {
-      savedMember = createMember(memberInfo, providerType); // 회원가입 할때 로직 수정 필요!!
-      log.info("로그인을 한다면 여길 타고 흘러 갈듯!! 회원정보 조회해보자(회원 아님) : {}", savedMember.getEmail());
+      savedMember = Optional.of(createMember(memberInfo, providerType)); // 회원가입 할때 로직 수정 필요!!
+      log.info("로그인을 한다면 여길 타고 흘러 갈듯!! 회원정보 조회해보자(회원 아님) : {}", savedMember.get().getEmail());
     }
 
-    return MemberPrincipal.create(savedMember, user.getAttributes());
+    return MemberPrincipal.create(savedMember.get(), user.getAttributes());
   }
 
   private Member updateMember(
@@ -94,7 +95,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
       null,
       null,
       null,
-      null
+      0
     );
     return memberRepository.save(member);
   }

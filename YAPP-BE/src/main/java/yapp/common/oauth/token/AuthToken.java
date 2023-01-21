@@ -20,6 +20,8 @@ public class AuthToken {
   private final String token;
   private final Key key;
 
+  @Getter
+  private String id;
   private static final String AUTHORITIES_KEY = "role";
 
   AuthToken(
@@ -29,6 +31,7 @@ public class AuthToken {
   ) {
     this.key = key;
     this.token = createAuthToken(id, expiry);
+    this.id = id;
   }
 
   AuthToken(
@@ -39,6 +42,7 @@ public class AuthToken {
   ) {
     this.key = key;
     this.token = createAuthToken(id, role, expiry);
+    this.id = id;
   }
 
   private String createAuthToken(
