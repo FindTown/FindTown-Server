@@ -47,7 +47,7 @@ public class MemberController {
       memberPrincipal.getUsername());
     return ApiResponse.success("회원 정보 조회", memberInfoResponse);
   }
-  
+
   @PostMapping("/signup")
   @PreAuthorize("hasRole('USER')")
   @Operation(summary = "회원가입")
@@ -74,8 +74,8 @@ public class MemberController {
     boolean duplicateConfirm = this.memberService.checkDuplicateNickname(nickname);
     result.put("existence", duplicateConfirm);
 
-    return duplicateConfirm ? ApiResponse.success("이미 존재하는 닉네임 입니다.", result)
-      : ApiResponse.success("등록 가능한 닉네임 입니다.", result);
+    return duplicateConfirm ? ApiResponse.success("exist_confirm", duplicateConfirm)
+      : ApiResponse.success("exist_confirm", result);
   }
 
   @GetMapping("/logout")
