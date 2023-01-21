@@ -54,7 +54,7 @@ public class AuthController {
     result.put("회원 id", memberPrincipal.getUsername());
     result.put("회원 권한 정보", memberPrincipal.getAuthorities());
 
-    return ApiResponse.success("소셜 로그인 회원 정보", result);
+    return ApiResponse.success("", result);
   }
 
   @PostMapping("/reissue/token")

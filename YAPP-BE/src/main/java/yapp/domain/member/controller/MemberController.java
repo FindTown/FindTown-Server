@@ -45,7 +45,7 @@ public class MemberController {
     System.out.println("get Id : " + memberPrincipal.getUsername());
     MemberInfoResponse memberInfoResponse = this.memberService.getMemberInfo(
       memberPrincipal.getUsername());
-    return ApiResponse.success("회원 정보 조회", memberInfoResponse);
+    return ApiResponse.success("member_info", memberInfoResponse);
   }
 
   @PostMapping("/signup")
@@ -59,7 +59,7 @@ public class MemberController {
     String memberId = this.memberService.memberSignUp(
       memberSignUpRequest, memberPrincipal.getUsername());
     if (StringUtils.hasText(memberId)) {
-      return ApiResponse.success("회원 가입 성공", "");
+      return ApiResponse.success("signup", true);
     }
     return ApiResponse.signUpFail();
   }
@@ -89,6 +89,6 @@ public class MemberController {
     CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
     CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
 
-    return ApiResponse.success("로그 아웃", "");
+    return ApiResponse.success("logout", true);
   }
 }
