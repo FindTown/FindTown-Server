@@ -4,6 +4,7 @@ import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -32,6 +33,7 @@ import yapp.domain.member.repository.MemberRefreshTokenRepository;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   private final CorsProperties corsProperties;
+  private final RedisTemplate redisTemplate;
   private final AppProperties appProperties;
   private final AuthTokenProvider tokenProvider;
   private final CustomUserDetailsService userDetailsService;
@@ -67,7 +69,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         "/**/*.css", "/**/*.js"
       )
       .permitAll()
-      .antMatchers("/auth/token", "/oauth2/**", "/auth/**")
+      .antMatchers("/auth/token", "/oauth2/**", "/auth/**", "/health", "/oauth/redirect")
       .permitAll() // Security 허용 Url      .antMatchers("/login").permitAll()
       .antMatchers("/register")
       .permitAll()
@@ -121,7 +123,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public TokenAuthenticationFilter tokenAuthenticationFilter() {
-    return new TokenAuthenticationFilter(tokenProvider);
+    return new TokenAuthenticationFilter(tokenProvider, redisTemplate);
   }
 
   @Bean
