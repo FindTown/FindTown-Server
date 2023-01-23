@@ -21,6 +21,7 @@ public class OpenAPIConfig {
   @Value("${ip.town-scoop}")
   private String SEVER_IP;
   private static final String PROD = "prod";
+  private static final String LOCAL = "local";
   private static final String EXCEPT = "except";
   private final Environment environment;
 
@@ -33,12 +34,38 @@ public class OpenAPIConfig {
   @Bean
   public OpenApiCustomiser customOpenAPI(BuildProperties buildProperties) {
     return openAPI -> {
-      if (!Arrays.asList(environment.getActiveProfiles()).contains(EXCEPT)) {
+      if (Arrays.asList(environment.getActiveProfiles()).contains(PROD)) {
         openAPI.info(
             new Info()
               .title("TownScoop API")
               .version(buildProperties.getVersion())
               .termsOfService("http://" + SEVER_IP + "/")
+              .license(
+                new License().name("Apache 2.0").url("http://springdoc.org")
+              )
+          )
+          .components(
+            openAPI.getComponents().addSecuritySchemes(
+              "bearer",
+              new SecurityScheme()
+                .type(Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")
+                .in(SecurityScheme.In.HEADER)
+                .name("Authorization")
+            )
+          )
+          .addSecurityItem(
+            new SecurityRequirement().addList(
+              "bearer", Arrays.asList("read", "write")
+            )
+          );
+      } else if (Arrays.asList(environment.getActiveProfiles()).contains(LOCAL)) {
+        openAPI.info(
+            new Info()
+              .title("TownScoop API")
+              .version(buildProperties.getVersion())
+              .termsOfService("http://localhost:8080/")
               .license(
                 new License().name("Apache 2.0").url("http://springdoc.org")
               )
