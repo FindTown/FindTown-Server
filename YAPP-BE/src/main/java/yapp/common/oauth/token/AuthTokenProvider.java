@@ -1,6 +1,7 @@
 package yapp.common.oauth.token;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Arrays;
@@ -42,6 +43,18 @@ public class AuthTokenProvider {
 
   public AuthToken convertAuthToken(String token) {
     return new AuthToken(token, key);
+  }
+
+  public Long getExpiration(String accessToken) {
+    Date expiration = Jwts.parserBuilder()
+      .setSigningKey(key)
+      .build()
+      .parseClaimsJws(accessToken)
+      .getBody()
+      .getExpiration();
+
+    Long now = new Date().getTime();
+    return (expiration.getTime() - now);
   }
 
   public Authentication getAuthentication(AuthToken authToken) {

@@ -57,8 +57,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       return;
     }
 
-    log.info("로그인 성공성공성공 ");
-
     clearAuthenticationAttributes(request, response);
     getRedirectStrategy().sendRedirect(request, response, targetUrl);
   }
@@ -138,16 +136,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     int cookieMaxAge = (int) refreshTokenExpiry / 60;
     int cookieMaxAgeForAccess = (int) appProperties.getAuth().getTokenExpiry() / 1000;
 
-        /*
-        Access Token 저장
-         */
+    /*
+    Access Token 저장
+     */
     CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
     CookieUtil.addCookieForAccess(
       response, ACCESS_TOKEN, accessToken.getToken(), cookieMaxAgeForAccess);
 
-        /*
-        Refresh Token 저장
-         */
+    /*
+    Refresh Token 저장
+     */
     CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
     CookieUtil.addCookie(response, REFRESH_TOKEN, refreshToken.getToken(), cookieMaxAge);
 

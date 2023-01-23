@@ -72,6 +72,19 @@ public class MemberService {
     return this.memberRepository.save(signUpMember).getMemberId();
   }
 
+  @Transactional
+  public void memberLogout(
+    String accessToken,
+    String memberId
+  ) {
+    // 1. DB refresh 토큰 삭제하기
+    this.memberRefreshTokenRepository.deleteByMemberId(memberId);
+
+    // 2. redis에 access_token 등록
+    Long expiration = authTokenProvider.getExpiration(accessToken);
+    redisTemplate.opsForValue().set(accessToken, "logout", expiration, TimeUnit.MILLISECONDS);
+  }
+
   public boolean checkDuplicateNickname(String nickname) {
     return this.memberRepository.existsAllByNickname(nickname);
   }
