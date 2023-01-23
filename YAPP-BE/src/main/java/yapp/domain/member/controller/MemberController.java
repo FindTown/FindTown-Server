@@ -85,6 +85,28 @@ public class MemberController {
       : ApiResponse.success("exist_confirm", result);
   }
 
+  @GetMapping("/check/register")
+  @PreAuthorize("hasRole('USER')")
+  @Operation(summary = "회원 가입 여부")
+  @Tag(name = "[화면]-회원가입")
+  public ApiResponse checkRegisterMember(
+    @CurrentAuthPrincipal User memberPrincipal
+  ) {
+    Map<String, Integer> result = new HashMap<>();
+    int isRegister = this.memberService.checkRegister(memberPrincipal.getUsername());
+    switch (isRegister) {
+      case 0:
+        result.put("register_check", Const.NON_MEMBERS);
+        return new ApiResponse(new ApiResponseHeader(200, "비회원 입니다"), result);
+      case 1:
+        result.put("register_check", Const.USE_MEMBERS);
+        return new ApiResponse(new ApiResponseHeader(200, "회원 입니다"), result);
+      default:
+        result.put("register_check", Const.QUIT_MEMBERS);
+        return new ApiResponse(new ApiResponseHeader(200, "탈퇴(휴면)회원 입니다"), result);
+    }
+  }
+
   @GetMapping("/logout")
   @PreAuthorize("hasRole('USER')")
   @Operation(summary = "로그 아웃")

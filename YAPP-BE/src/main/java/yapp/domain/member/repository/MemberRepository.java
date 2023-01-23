@@ -10,7 +10,7 @@ import yapp.domain.member.entitiy.Member;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
   boolean existsAllByNickname(String nickname);
-
+  
   Optional<Member> findByEmailAndProviderType(
     String memberEmail,
     ProviderType providerType
