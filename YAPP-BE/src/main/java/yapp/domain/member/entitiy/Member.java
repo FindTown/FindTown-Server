@@ -13,13 +13,15 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import yapp.common.config.Const;
 import yapp.common.domain.BaseEntity;
 import yapp.common.oauth.entity.ProviderType;
 import yapp.common.oauth.entity.RoleType;
-import yapp.domain.member.dto.request.MemberSignUpRequest;
 
 @Entity
 @Getter
@@ -41,7 +43,7 @@ public class Member extends BaseEntity {
   private String email;
 
   @Column(name = "nickname")
-  private String nickname; // 중복 확인 로직 필요
+  private String nickname;
 
   @NotNull
   @Size(max = 128)
@@ -51,7 +53,7 @@ public class Member extends BaseEntity {
   @Column(name = "provider_type", length = 20)
   @Enumerated(EnumType.STRING)
   @NotNull
-  private ProviderType providerType; //이 값으로 소셜 로그인간 이메일 구분한다.
+  private ProviderType providerType;
 
   @Column(name = "role_type", length = 20)
   @Enumerated(EnumType.STRING)
@@ -82,20 +84,22 @@ public class Member extends BaseEntity {
     this.nickname = nickname;
   }
 
-  public void changeMemberStatus(
-    int useStatus
+  public void checkPassword(
+    PasswordEncoder passwordEncoder,
+    String credentials
   ) {
-    this.useStatus = useStatus;
+    if (!passwordEncoder.matches(credentials, this.password)) {
+      throw new BadCredentialsException("Bad credential");
+    }
   }
 
-  public void setSignUp(MemberSignUpRequest memberSignUpRequest) {
-    this.nickname = memberSignUpRequest.getNickname();
-    this.providerType = memberSignUpRequest.getProviderType();
-    this.resident = memberSignUpRequest.getResident();
-    this.useAgreeYn = memberSignUpRequest.getUseAgreeYn();
-    this.privacyAgreeYn = memberSignUpRequest.getPrivacyAgreeYn();
+  public void encodeDefaultPassword(
+    PasswordEncoder passwordEncoder
+  ) {
+    this.password = passwordEncoder.encode(Const.DEFAULT_PASSWORD);
   }
 
+  @Builder
   public Member(
     String memberId,
     String email,

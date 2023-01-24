@@ -56,11 +56,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             + "계정 타입이 일치하지 않습니다."
         );
       }
-      log.info("로그인을 한다면 여길 타고 흘러 갈듯!! 회원정보 조회해보자(이미 회원) : {}", savedMember.get().getEmail());
       updateMember(savedMember.get(), memberInfo);
     } else {
-      savedMember = Optional.of(createMember(memberInfo, providerType)); // 회원가입 할때 로직 수정 필요!!
-      log.info("로그인을 한다면 여길 타고 흘러 갈듯!! 회원정보 조회해보자(회원 아님) : {}", savedMember.get().getEmail());
+      savedMember = Optional.of(createMember(memberInfo, providerType));
     }
 
     return MemberPrincipal.create(savedMember.get(), user.getAttributes());

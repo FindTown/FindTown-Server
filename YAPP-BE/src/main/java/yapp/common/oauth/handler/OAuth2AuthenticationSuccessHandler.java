@@ -74,6 +74,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         "Sorry! We've got an Unauthorized Redirect URI and can't proceed with the authentication");
     }
 
+    log.info("로그인 데이터를 받고 여기로 오는 경우는 없을 거 같다!");
+
     String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
 
     OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken) authentication;
@@ -109,6 +111,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       appProperties.getAuth().getTokenSecret(),
       new Date(now.getTime() + refreshTokenExpiry)
     );
+    log.info("access 토큰 정보 : {}", accessToken.getToken());
+    log.info("refresh 토큰 정보 : {}", refreshToken.getToken());
 
     log.info(
       "[determineTargetUrl] refreshToken!! id, expiredTokenClaims 생성 : {}, {}, {}",

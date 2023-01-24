@@ -16,6 +16,7 @@ import yapp.domain.member.converter.MemberConverter;
 import yapp.domain.member.dto.request.MemberSignUpRequest;
 import yapp.domain.member.dto.response.MemberInfoResponse;
 import yapp.domain.member.entitiy.Member;
+import yapp.domain.member.entitiy.MemberRefreshToken;
 import yapp.domain.member.entitiy.MemberWishTown;
 import yapp.domain.member.entitiy.WishStatus;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
@@ -66,20 +67,16 @@ public class MemberService {
 
   @Transactional
   public String memberSignUp(
-    MemberSignUpRequest memberSignUpRequest,
-    String memberId
+    MemberSignUpRequest memberSignUpRequest
   ) {
-    Member signUpMember = this.memberRepository.findByMemberId(memberId)
-      .orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
-
-    signUpMember.setSignUp(memberSignUpRequest);
-    signUpMember.changeMemberStatus(Const.USE_MEMBERS);
+    Member signUpMember = this.memberConverter.toEntity(memberSignUpRequest);
 
     if (memberSignUpRequest.getObjectId() != null) {
       Location location = this.locationRepository.getLocationByObjectId(
           memberSignUpRequest.getObjectId())
         .orElseThrow(() -> new RuntimeException("입력한 동네는 현재 존재하지 않습니다."));
-      this.memberWishTownRepository.save(new MemberWishTown(memberId, location, WishStatus.YES));
+      this.memberWishTownRepository.save(
+        new MemberWishTown(memberSignUpRequest.getMemberId(), location, WishStatus.YES));
     }
 
     return this.memberRepository.save(signUpMember).getMemberId();
@@ -98,12 +95,16 @@ public class MemberService {
     String accessToken,
     String memberId
   ) {
-    // 1. DB refresh 토큰 삭제하기
-    this.memberRefreshTokenRepository.deleteByMemberId(memberId);
+    // 1. DB refresh 토큰 공백으로 변경
+    MemberRefreshToken memberRefreshToken = this.memberRefreshTokenRepository.findByMemberId(
+      memberId);
+    memberRefreshToken.setRefreshToken("");
 
     // 2. redis에 access_token 등록
     Long expiration = authTokenProvider.getExpiration(accessToken);
     redisTemplate.opsForValue().set(accessToken, "logout", expiration, TimeUnit.MILLISECONDS);
+
+    this.memberRefreshTokenRepository.saveAndFlush(memberRefreshToken);
   }
 
   public boolean checkDuplicateNickname(String nickname) {

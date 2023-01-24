@@ -56,15 +56,12 @@ public class MemberController {
   }
 
   @PostMapping("/signup")
-  @PreAuthorize("hasRole('USER')")
   @Operation(summary = "회원가입")
-  @Tag(name = "[화면]-로그인")
+  @Tag(name = "[화면]-로그인/회원가입")
   public ApiResponse socialSignUp(
-    @CurrentAuthPrincipal User memberPrincipal,
     @RequestBody MemberSignUpRequest memberSignUpRequest
   ) {
-    String memberId = this.memberService.memberSignUp(
-      memberSignUpRequest, memberPrincipal.getUsername());
+    String memberId = this.memberService.memberSignUp(memberSignUpRequest);
     if (StringUtils.hasText(memberId)) {
       return ApiResponse.success("signup", true);
     }
@@ -73,7 +70,7 @@ public class MemberController {
 
   @GetMapping("/check/nickname")
   @Operation(summary = "닉네임 중복 확인")
-  @Tag(name = "[화면]-회원가입")
+  @Tag(name = "[화면]-로그인/회원가입")
   public ApiResponse checkNickname(
     @RequestParam(name = "nickname") String nickname
   ) {
@@ -88,7 +85,7 @@ public class MemberController {
   @GetMapping("/check/register")
   @PreAuthorize("hasRole('USER')")
   @Operation(summary = "회원 가입 여부")
-  @Tag(name = "[화면]-회원가입")
+  @Tag(name = "[화면]-로그인/회원가입")
   public ApiResponse checkRegisterMember(
     @CurrentAuthPrincipal User memberPrincipal
   ) {
