@@ -4,6 +4,7 @@ import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -16,13 +17,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import yapp.common.oauth.entity.RoleType;
-import yapp.common.oauth.exception.RestAuthenticationEntryPoint;
 import yapp.common.oauth.filter.TokenAuthenticationFilter;
 import yapp.common.oauth.handler.OAuth2AuthenticationFailureHandler;
 import yapp.common.oauth.handler.OAuth2AuthenticationSuccessHandler;
 import yapp.common.oauth.handler.TokenAccessDeniedHandler;
 import yapp.common.oauth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository;
-import yapp.common.oauth.service.CustomOAuth2UserService;
 import yapp.common.oauth.service.CustomUserDetailsService;
 import yapp.common.oauth.token.AuthTokenProvider;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
@@ -32,10 +31,10 @@ import yapp.domain.member.repository.MemberRefreshTokenRepository;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   private final CorsProperties corsProperties;
+  private final RedisTemplate redisTemplate;
   private final AppProperties appProperties;
   private final AuthTokenProvider tokenProvider;
   private final CustomUserDetailsService userDetailsService;
-  private final CustomOAuth2UserService oAuth2UserService;
   private final TokenAccessDeniedHandler tokenAccessDeniedHandler;
   private final MemberRefreshTokenRepository memberRefreshTokenRepository;
 
@@ -67,7 +66,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         "/**/*.css", "/**/*.js"
       )
       .permitAll()
-      .antMatchers("/auth/token", "/oauth2/**", "/auth/**")
+      .antMatchers(
+        "/auth/token", "/oauth2/**", "/auth/**", "/health", "/oauth/redirect", "/auth/login")
       .permitAll() // Security 허용 Url      .antMatchers("/login").permitAll()
       .antMatchers("/register")
       .permitAll()
@@ -89,22 +89,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .authenticated()
       .and()
       .exceptionHandling()
-      .authenticationEntryPoint(new RestAuthenticationEntryPoint())
-      .accessDeniedHandler(tokenAccessDeniedHandler)
-      .and()
-      .oauth2Login()
-      .authorizationEndpoint()
-      .baseUri("/oauth2/authorization")
-      .authorizationRequestRepository(oAuth2AuthorizationRequestBasedOnCookieRepository())
-      .and()
-      .redirectionEndpoint()
-      .baseUri("/oauth2/callback/*")
-      .and()
-      .userInfoEndpoint()
-      .userService(oAuth2UserService)
-      .and()
-      .successHandler(oAuth2AuthenticationSuccessHandler())
-      .failureHandler(oAuth2AuthenticationFailureHandler());
+//      .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+      .accessDeniedHandler(tokenAccessDeniedHandler);
+//      .and()
+//      .oauth2Login()
+//      .authorizationEndpoint()
+//      .baseUri("/oauth2/authorization")
+//      .authorizationRequestRepository(oAuth2AuthorizationRequestBasedOnCookieRepository())
+//      .and()
+//      .redirectionEndpoint()
+//      .baseUri("/oauth2/callback/*")
+//      .and()
+//      .userInfoEndpoint()
+//      .userService(oAuth2UserService)
+//      .and()
+//      .successHandler(oAuth2AuthenticationSuccessHandler())
+//      .failureHandler(oAuth2AuthenticationFailureHandler());
+
     http.addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
   }
 
@@ -121,7 +122,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public TokenAuthenticationFilter tokenAuthenticationFilter() {
-    return new TokenAuthenticationFilter(tokenProvider);
+    return new TokenAuthenticationFilter(tokenProvider, redisTemplate);
   }
 
   @Bean

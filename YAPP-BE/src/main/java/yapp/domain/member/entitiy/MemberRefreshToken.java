@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import yapp.common.domain.BaseEntity;
 
 @Getter
 @Setter
@@ -20,7 +21,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "member_refresh_token")
-public class MemberRefreshToken {
+public class MemberRefreshToken extends BaseEntity {
 
   @JsonIgnore
   @Id

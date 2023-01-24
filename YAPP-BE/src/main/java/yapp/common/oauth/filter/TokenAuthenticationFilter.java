@@ -7,8 +7,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import yapp.common.oauth.token.AuthToken;
@@ -19,6 +21,8 @@ import yapp.common.utils.HeaderUtil;
 @RequiredArgsConstructor
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
   private final AuthTokenProvider tokenProvider;
+
+  private final RedisTemplate redisTemplate;
 
   @Override
   protected void doFilterInternal(
@@ -31,10 +35,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     AuthToken token = tokenProvider.convertAuthToken(tokenStr);
 
     if (StringUtils.hasText(tokenStr) && token.validate()) {
-      Authentication authentication = tokenProvider.getAuthentication(token);
-      SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
+      String isLogout = (String) redisTemplate.opsForValue().get(tokenStr);
 
+      if (ObjectUtils.isEmpty(isLogout)) {
+        Authentication authentication = tokenProvider.getAuthentication(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+      }
+    }
     filterChain.doFilter(request, response);
   }
 }

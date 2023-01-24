@@ -19,6 +19,8 @@ public class ApiResponse<T> {
   private final static String INVALID_REFRESH_TOKEN = "유효하지 않은 REFRESH TOKEN 입니다.";
   private final static String NOT_EXPIRED_TOKEN_YET = "아직 토큰이 만료되지 않았습니다.";
   private final static String FAILED_SIGNUP = "회원 가입에 실패하였습니다.";
+  private final static String EXPIRED_REFRESH_TOKEN = "만료된 REFRESH TOKEN 입니다. 로그인을 다시 진행해주세요";
+  private final static String NOT_EQUAL_REFRESH_TOKEN = "REFRESH TOKEN 정보가 일치하지 않습니다.";
 
   private final ApiResponseHeader header;
   private final Map<String, T> body;
@@ -51,6 +53,14 @@ public class ApiResponse<T> {
 
   public static <T> ApiResponse<T> invalidRefreshToken() {
     return new ApiResponse(new ApiResponseHeader(FAILED, INVALID_REFRESH_TOKEN), null);
+  }
+
+  public static <T> ApiResponse<T> expiredRefreshToken() {
+    return new ApiResponse(new ApiResponseHeader(FAILED, EXPIRED_REFRESH_TOKEN), null);
+  }
+
+  public static <T> ApiResponse<T> notEqualRefreshToken() {
+    return new ApiResponse(new ApiResponseHeader(FAILED, NOT_EQUAL_REFRESH_TOKEN), null);
   }
 
   public static <T> ApiResponse<T> notExpiredTokenYet() {

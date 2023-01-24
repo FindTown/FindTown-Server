@@ -10,6 +10,8 @@ import yapp.domain.member.entitiy.Resident;
 @Setter
 @Builder
 public class MemberSignUpRequest {
+  private String memberId;
+  private String email;
   private String nickname;
   private ProviderType providerType;
   private Long objectId;

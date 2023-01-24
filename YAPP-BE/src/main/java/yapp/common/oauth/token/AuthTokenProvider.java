@@ -1,6 +1,7 @@
 package yapp.common.oauth.token;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Arrays;
@@ -8,15 +9,17 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import yapp.common.exception.TokenValidFailedException;
 
 @Slf4j
-public class AuthTokenProvider {
+public class AuthTokenProvider implements AuthenticationProvider {
 
   private final Key key;
   private static final String AUTHORITIES_KEY = "role";
@@ -44,6 +47,18 @@ public class AuthTokenProvider {
     return new AuthToken(token, key);
   }
 
+  public Long getExpiration(String accessToken) {
+    Date expiration = Jwts.parserBuilder()
+      .setSigningKey(key)
+      .build()
+      .parseClaimsJws(accessToken)
+      .getBody()
+      .getExpiration();
+
+    Long now = new Date().getTime();
+    return (expiration.getTime() - now);
+  }
+
   public Authentication getAuthentication(AuthToken authToken) {
 
     if (authToken.validate()) {
@@ -61,5 +76,16 @@ public class AuthTokenProvider {
     } else {
       throw new TokenValidFailedException();
     }
+  }
+
+  @Override
+  public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+
+    return null;
+  }
+
+  @Override
+  public boolean supports(Class<?> authentication) {
+    return authentication.equals(UsernamePasswordAuthenticationToken.class);
   }
 }
