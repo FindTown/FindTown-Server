@@ -27,7 +27,6 @@ import yapp.domain.member.service.MemberService;
 
 @RestController
 @RequestMapping("/app/members")
-@Tag(name = "회원")
 public class MemberController {
 
   private final MemberService memberService;

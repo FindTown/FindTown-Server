@@ -38,7 +38,6 @@ import yapp.domain.member.entitiy.MemberRefreshToken;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
 
 @Slf4j
-@Tag(name = "권한 인증")
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -99,6 +98,7 @@ public class AuthController {
 
   @PostMapping("/login/confirm")
   @Operation(summary = "access_token으로 회원 ID , 권한 정보 확인")
+  @Tag(name = "[권한/인증]")
   public ApiResponse checkLoginConfirm(
     @CurrentAuthPrincipal User memberPrincipal
   ) {
@@ -111,6 +111,7 @@ public class AuthController {
 
   @PostMapping("/reissue/token")
   @Operation(summary = "access_token 재발급")
+  @Tag(name = "[권한/인증]")
   public ApiResponse reissueRefreshToken(
     HttpServletRequest request,
     HttpServletResponse response

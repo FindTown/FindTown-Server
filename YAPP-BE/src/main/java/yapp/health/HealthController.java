@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import yapp.common.response.ApiResponse;
 import yapp.common.response.ApiResponseHeader;
 
-@Tag(name = "네트워크 연결 체크")
+@Tag(name = "[네트워크 연결 체크]")
 @RestController
 public class HealthController {
 
