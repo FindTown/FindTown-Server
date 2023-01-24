@@ -9,11 +9,9 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import java.security.Key;
 import java.util.Date;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
 public class AuthToken {
 
   @Getter
@@ -23,6 +21,14 @@ public class AuthToken {
   @Getter
   private String id;
   private static final String AUTHORITIES_KEY = "role";
+
+  public AuthToken(
+    String token,
+    Key key
+  ) {
+    this.token = token;
+    this.key = key;
+  }
 
   AuthToken(
     String id,

@@ -57,8 +57,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       return;
     }
 
-    log.info("로그인 성공성공성공 ");
-
     clearAuthenticationAttributes(request, response);
     getRedirectStrategy().sendRedirect(request, response, targetUrl);
   }
@@ -75,6 +73,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       throw new IllegalArgumentException(
         "Sorry! We've got an Unauthorized Redirect URI and can't proceed with the authentication");
     }
+
+    log.info("로그인 데이터를 받고 여기로 오는 경우는 없을 거 같다!");
 
     String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
 
@@ -111,6 +111,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
       appProperties.getAuth().getTokenSecret(),
       new Date(now.getTime() + refreshTokenExpiry)
     );
+    log.info("access 토큰 정보 : {}", accessToken.getToken());
+    log.info("refresh 토큰 정보 : {}", refreshToken.getToken());
 
     log.info(
       "[determineTargetUrl] refreshToken!! id, expiredTokenClaims 생성 : {}, {}, {}",
@@ -138,16 +140,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     int cookieMaxAge = (int) refreshTokenExpiry / 60;
     int cookieMaxAgeForAccess = (int) appProperties.getAuth().getTokenExpiry() / 1000;
 
-        /*
-        Access Token 저장
-         */
+    /*
+    Access Token 저장
+     */
     CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
     CookieUtil.addCookieForAccess(
       response, ACCESS_TOKEN, accessToken.getToken(), cookieMaxAgeForAccess);
 
-        /*
-        Refresh Token 저장
-         */
+    /*
+    Refresh Token 저장
+     */
     CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
     CookieUtil.addCookie(response, REFRESH_TOKEN, refreshToken.getToken(), cookieMaxAge);
 

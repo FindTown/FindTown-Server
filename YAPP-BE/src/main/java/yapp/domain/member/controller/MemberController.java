@@ -5,8 +5,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.util.StringUtils;
@@ -16,23 +14,32 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import yapp.common.config.Const;
+import yapp.common.oauth.token.AuthToken;
+import yapp.common.oauth.token.AuthTokenProvider;
 import yapp.common.response.ApiResponse;
+import yapp.common.response.ApiResponseHeader;
 import yapp.common.security.CurrentAuthPrincipal;
-import yapp.common.utils.CookieUtil;
+import yapp.common.utils.HeaderUtil;
 import yapp.domain.member.dto.request.MemberSignUpRequest;
 import yapp.domain.member.dto.response.MemberInfoResponse;
 import yapp.domain.member.service.MemberService;
 
 @RestController
 @RequestMapping("/app/members")
-@RequiredArgsConstructor
 @Tag(name = "회원")
 public class MemberController {
 
   private final MemberService memberService;
+  private final AuthTokenProvider tokenProvider;
 
-  public final static String ACCESS_TOKEN = "access_token";
-  private final static String REFRESH_TOKEN = "refresh_token";
+  public MemberController(
+    MemberService memberService,
+    AuthTokenProvider tokenProvider
+  ) {
+    this.memberService = memberService;
+    this.tokenProvider = tokenProvider;
+  }
 
   @GetMapping("/info")
   @PreAuthorize("hasRole('USER')")
@@ -49,15 +56,12 @@ public class MemberController {
   }
 
   @PostMapping("/signup")
-  @PreAuthorize("hasRole('USER')")
   @Operation(summary = "회원가입")
-  @Tag(name = "[화면]-로그인")
+  @Tag(name = "[화면]-로그인/회원가입")
   public ApiResponse socialSignUp(
-    @CurrentAuthPrincipal User memberPrincipal,
     @RequestBody MemberSignUpRequest memberSignUpRequest
   ) {
-    String memberId = this.memberService.memberSignUp(
-      memberSignUpRequest, memberPrincipal.getUsername());
+    String memberId = this.memberService.memberSignUp(memberSignUpRequest);
     if (StringUtils.hasText(memberId)) {
       return ApiResponse.success("signup", true);
     }
@@ -66,7 +70,7 @@ public class MemberController {
 
   @GetMapping("/check/nickname")
   @Operation(summary = "닉네임 중복 확인")
-  @Tag(name = "[화면]-회원가입")
+  @Tag(name = "[화면]-로그인/회원가입")
   public ApiResponse checkNickname(
     @RequestParam(name = "nickname") String nickname
   ) {
@@ -78,17 +82,43 @@ public class MemberController {
       : ApiResponse.success("exist_confirm", result);
   }
 
+  @GetMapping("/check/register")
+  @PreAuthorize("hasRole('USER')")
+  @Operation(summary = "회원 가입 여부")
+  @Tag(name = "[화면]-로그인/회원가입")
+  public ApiResponse checkRegisterMember(
+    @CurrentAuthPrincipal User memberPrincipal
+  ) {
+    Map<String, Integer> result = new HashMap<>();
+    int isRegister = this.memberService.checkRegister(memberPrincipal.getUsername());
+    switch (isRegister) {
+      case 0:
+        result.put("register_check", Const.NON_MEMBERS);
+        return new ApiResponse(new ApiResponseHeader(200, "비회원 입니다"), result);
+      case 1:
+        result.put("register_check", Const.USE_MEMBERS);
+        return new ApiResponse(new ApiResponseHeader(200, "회원 입니다"), result);
+      default:
+        result.put("register_check", Const.QUIT_MEMBERS);
+        return new ApiResponse(new ApiResponseHeader(200, "탈퇴(휴면)회원 입니다"), result);
+    }
+  }
+
   @GetMapping("/logout")
   @PreAuthorize("hasRole('USER')")
   @Operation(summary = "로그 아웃")
   @Tag(name = "[화면]-마이페이지")
   public ApiResponse logout(
     HttpServletRequest request,
-    HttpServletResponse response
+    @CurrentAuthPrincipal User memberPrincipal
   ) {
-    CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
-    CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
+    String accessToken = HeaderUtil.getAccessToken(request);
+    AuthToken authToken = tokenProvider.convertAuthToken(accessToken);
+    if (!authToken.validate()) {
+      return ApiResponse.invalidAccessToken();
+    }
 
+    this.memberService.memberLogout(accessToken, memberPrincipal.getUsername());
     return ApiResponse.success("logout", true);
   }
 }
