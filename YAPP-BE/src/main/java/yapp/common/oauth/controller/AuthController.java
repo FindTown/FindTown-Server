@@ -70,25 +70,28 @@ public class AuthController {
     HttpServletResponse response,
     @RequestBody MemberSignInRequest memberSignInRequest
   ) {
-
-    Map<String, String> result = authService.login(memberSignInRequest);
-    int registerCheck = Integer.parseInt(result.get("register_check"));
+    Map<String, Object> result = new HashMap<>();
+    Map<String, String> loginData = authService.login(memberSignInRequest);
+    int registerCheck = Integer.parseInt(loginData.get("register_check"));
+    result.put("register_check", registerCheck);
 
     switch (registerCheck) {
       case Const.USE_MEMBERS:
-        long refreshTokenExpiry = Long.parseLong(result.get("refresh_token_expiry"));
+        long refreshTokenExpiry = Long.parseLong(loginData.get("refresh_token_expiry"));
         int cookieMaxAge = (int) refreshTokenExpiry / 60;
         int cookieMaxAgeForAccess = (int) appProperties.getAuth().getTokenExpiry() / 1000;
 
         // access_token 담기
         CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
         CookieUtil.addCookieForAccess(
-          response, ACCESS_TOKEN, result.get("access_token"), cookieMaxAgeForAccess);
+          response, ACCESS_TOKEN, loginData.get("access_token"), cookieMaxAgeForAccess);
 
         // refresh_token 담기
         CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
-        CookieUtil.addCookie(response, REFRESH_TOKEN, result.get("refresh_token"), cookieMaxAge);
+        CookieUtil.addCookie(response, REFRESH_TOKEN, loginData.get("refresh_token"), cookieMaxAge);
 
+        result.put("access_token", loginData.get("access_token"));
+        result.put("refresh_token", loginData.get("refresh_token"));
         return new ApiResponse(new ApiResponseHeader(200, "회원 계정입니다."), result);
       case Const.NON_MEMBERS:
         return new ApiResponse(new ApiResponseHeader(400, "비회원 계정입니다."), result);
