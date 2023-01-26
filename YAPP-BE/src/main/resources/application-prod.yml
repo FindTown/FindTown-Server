@@ -3,7 +3,7 @@ spring:
     activate:
       on-profile: prod
   redis:
-    host: ${SERVER_IP_ONLY}
+    host: localhost
     port: ${REDIS_PORT}
   mvc:
     path match:
