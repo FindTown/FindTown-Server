@@ -18,6 +18,6 @@ public class MemberSignUpRequest {
   private ProviderType providerType;
   private Long objectId;
   private Resident resident;
-  private String useAgreeYn;
-  private String privacyAgreeYn;
+  private boolean useAgreeYn;
+  private boolean privacyAgreeYn;
 }

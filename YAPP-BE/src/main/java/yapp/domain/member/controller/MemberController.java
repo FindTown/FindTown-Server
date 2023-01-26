@@ -47,8 +47,6 @@ public class MemberController {
   public ApiResponse getMemberInfo(
     @CurrentAuthPrincipal User memberPrincipal
   ) {
-    System.out.println("memberPricipal : " + memberPrincipal.toString());
-    System.out.println("get Id : " + memberPrincipal.getUsername());
     MemberInfoResponse memberInfoResponse = this.memberService.getMemberInfo(
       memberPrincipal.getUsername());
     return ApiResponse.success("member_info", memberInfoResponse);

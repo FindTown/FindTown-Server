@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Resident {
 
+  @Column(name = "resident_address")
+  private String residentAddress;
+
   @Column(name = "resident_review")
   private String residentReview;
 
@@ -21,10 +24,12 @@ public class Resident {
   private int residentMonth;
 
   public Resident(
+    String residentAddress,
     String residentReview,
     int residentYear,
     int residentMonth
   ) {
+    this.residentAddress = residentAddress;
     this.residentReview = residentReview;
     this.residentYear = residentYear;
     this.residentMonth = residentMonth;

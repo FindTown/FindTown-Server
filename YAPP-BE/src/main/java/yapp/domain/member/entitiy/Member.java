@@ -63,11 +63,13 @@ public class Member extends BaseEntity {
   @Embedded
   private Resident resident;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "use_agree_yn") //이용약관 동의1
-  private String useAgreeYn;
+  private YN useAgreeYn;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "privacy_agree_yn") //이용약관 동의2
-  private String privacyAgreeYn;
+  private YN privacyAgreeYn;
 
   @Column(name = "use_status", columnDefinition = "TINYINT")
   private int useStatus;
@@ -107,8 +109,8 @@ public class Member extends BaseEntity {
     ProviderType providerType,
     RoleType roleType,
     Resident resident,
-    String useAgreeYn,
-    String privacyAgreeYn,
+    YN useAgreeYn,
+    YN privacyAgreeYn,
     int useStatus
   ) {
     this.memberId = memberId;
