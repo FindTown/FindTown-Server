@@ -20,9 +20,12 @@ public class LocationConverter {
       .replace("[[[", "[")
       .replace("]]]", "]");
 
-    String[][] crd_arr = Arrays.stream(crd_str.substring(2, crd_str.length() - 2).split("\\],\\["))
-      .map(e -> Arrays.stream(e.split("\\s*,\\s*"))
-        .toArray(String[]::new)).toArray(String[][]::new);
+    Double[][] crd_arr = Arrays.stream(crd_str.substring(2, crd_str.length() - 2).split("\\],\\["))
+      .map(e ->
+        Arrays.stream(e.split("\\s*,\\s*"))
+          .map(Double::parseDouble)
+          .toArray(Double[]::new)
+      ).toArray(Double[][]::new);
 
     return Optional.of(LocationInfoResponse.builder()
       .object_id(location.getObjectId())
