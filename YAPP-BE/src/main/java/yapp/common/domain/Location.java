@@ -41,4 +41,7 @@ public class Location {
 
   @Column(name = "adm_cd8")
   private String admCd8;
+
+  @Column(name = "coordinates")
+  private String coordinates;
 }
