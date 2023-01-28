@@ -52,5 +52,5 @@ logging:
   level:
     yapp: INFO
 
-ip:
-  town-scoop: ${SERVER_IP}
+#ip:
+#  town-scoop: ${SERVER_IP}

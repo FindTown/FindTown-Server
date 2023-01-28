@@ -9,7 +9,6 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityScheme.Type;
 import java.util.Arrays;
 import org.springdoc.core.customizers.OpenApiCustomiser;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +17,8 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class OpenAPIConfig {
 
-  @Value("${ip.town-scoop}")
-  private String SEVER_IP;
+  //  @Value("${ip.town-scoop}")
+//  private String SEVER_IP;
   private static final String PROD = "prod";
   private static final String LOCAL = "local";
   private static final String EXCEPT = "except";
@@ -39,7 +38,7 @@ public class OpenAPIConfig {
             new Info()
               .title("TownScoop API")
               .version(buildProperties.getVersion())
-              .termsOfService("http://" + SEVER_IP + "/")
+              .termsOfService("https://townscoop.site/")
               .license(
                 new License().name("Apache 2.0").url("http://springdoc.org")
               )
