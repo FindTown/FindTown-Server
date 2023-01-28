@@ -7,7 +7,9 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityScheme.Type;
+import io.swagger.v3.oas.models.servers.Server;
 import java.util.Arrays;
+import java.util.List;
 import org.springdoc.core.customizers.OpenApiCustomiser;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
@@ -17,11 +19,8 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class OpenAPIConfig {
 
-  //  @Value("${ip.town-scoop}")
-//  private String SEVER_IP;
   private static final String PROD = "prod";
   private static final String LOCAL = "local";
-  private static final String EXCEPT = "except";
   private final Environment environment;
 
   public OpenAPIConfig(
@@ -34,6 +33,10 @@ public class OpenAPIConfig {
   public OpenApiCustomiser customOpenAPI(BuildProperties buildProperties) {
     return openAPI -> {
       if (Arrays.asList(environment.getActiveProfiles()).contains(PROD)) {
+        Server prodServer = new Server();
+        prodServer.setDescription(PROD);
+        prodServer.setUrl("https://townscoop.site/");
+
         openAPI.info(
             new Info()
               .title("TownScoop API")
@@ -43,6 +46,7 @@ public class OpenAPIConfig {
                 new License().name("Apache 2.0").url("http://springdoc.org")
               )
           )
+          .servers(List.of(prodServer))
           .components(
             openAPI.getComponents().addSecuritySchemes(
               "bearer",
