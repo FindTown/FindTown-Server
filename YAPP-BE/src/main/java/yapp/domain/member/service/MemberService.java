@@ -1,6 +1,7 @@
 package yapp.domain.member.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -85,9 +86,11 @@ public class MemberService {
   public int checkRegister(
     String memberId
   ) {
-    Member member = this.memberRepository.findByMemberId(memberId)
-      .orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
-    return member.getUseStatus();
+    Optional<Member> member = this.memberRepository.findByMemberId(memberId);
+    if (member.isEmpty()) {
+      return Const.NON_MEMBERS;
+    }
+    return member.get().getUseStatus();
   }
 
   @Transactional

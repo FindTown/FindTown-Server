@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import yapp.common.config.Const;
 import yapp.common.domain.Location;
 import yapp.common.oauth.entity.RoleType;
@@ -41,7 +42,9 @@ public class MemberConverter {
   ) {
     Member member = Member.builder()
       .memberId(memberSignUpRequest.getMemberId())
-      .email(memberSignUpRequest.getEmail())
+      .email(
+        StringUtils.hasText(memberSignUpRequest.getEmail()) ? memberSignUpRequest.getEmail()
+          : Const.DEFAULT_EMAIL)
       .nickname(memberSignUpRequest.getNickname())
       .providerType(memberSignUpRequest.getProviderType())
       .resident(memberSignUpRequest.getResident())

@@ -58,10 +58,16 @@ public class MemberController {
   public ApiResponse socialSignUp(
     @RequestBody MemberSignUpRequest memberSignUpRequest
   ) {
+    int isRegister = this.memberService.checkRegister(memberSignUpRequest.getMemberId());
+    if (isRegister != Const.NON_MEMBERS) {
+      return new ApiResponse(new ApiResponseHeader(400, "이미 가입된 회원 입니다"), null);
+    }
+
     String memberId = this.memberService.memberSignUp(memberSignUpRequest);
     if (StringUtils.hasText(memberId)) {
       return ApiResponse.success("signup", true);
     }
+
     return ApiResponse.signUpFail();
   }
 
