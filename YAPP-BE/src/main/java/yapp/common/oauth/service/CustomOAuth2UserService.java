@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import yapp.common.oauth.entity.OAuth2UserInfo;
 import yapp.common.oauth.entity.OAuth2UserInfoFactory;
 import yapp.common.oauth.entity.ProviderType;
@@ -68,11 +69,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     Member member,
     OAuth2UserInfo memberInfo
   ) {
-    if (memberInfo.getEmail() != null && !member.getEmail().equals(memberInfo.getEmail())) {
+    if (!StringUtils.hasText(memberInfo.getEmail()) && !member.getEmail()
+      .equals(memberInfo.getEmail())) {
       member.setEmail(memberInfo.getEmail());
     }
 
-    if (memberInfo.getNickname() != null && !member.getNickname()
+    if (!StringUtils.hasText(memberInfo.getNickname()) && !member.getNickname()
       .equals(memberInfo.getNickname())) {
       member.setNickname(memberInfo.getNickname());
     }

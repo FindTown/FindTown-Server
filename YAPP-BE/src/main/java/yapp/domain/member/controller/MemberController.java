@@ -27,7 +27,6 @@ import yapp.domain.member.service.MemberService;
 
 @RestController
 @RequestMapping("/app/members")
-@Tag(name = "회원")
 public class MemberController {
 
   private final MemberService memberService;
@@ -48,8 +47,6 @@ public class MemberController {
   public ApiResponse getMemberInfo(
     @CurrentAuthPrincipal User memberPrincipal
   ) {
-    System.out.println("memberPricipal : " + memberPrincipal.toString());
-    System.out.println("get Id : " + memberPrincipal.getUsername());
     MemberInfoResponse memberInfoResponse = this.memberService.getMemberInfo(
       memberPrincipal.getUsername());
     return ApiResponse.success("member_info", memberInfoResponse);
@@ -61,10 +58,16 @@ public class MemberController {
   public ApiResponse socialSignUp(
     @RequestBody MemberSignUpRequest memberSignUpRequest
   ) {
+    int isRegister = this.memberService.checkRegister(memberSignUpRequest.getMemberId());
+    if (isRegister != Const.NON_MEMBERS) {
+      return new ApiResponse(new ApiResponseHeader(400, "이미 가입된 회원 입니다"), null);
+    }
+
     String memberId = this.memberService.memberSignUp(memberSignUpRequest);
     if (StringUtils.hasText(memberId)) {
       return ApiResponse.success("signup", true);
     }
+
     return ApiResponse.signUpFail();
   }
 

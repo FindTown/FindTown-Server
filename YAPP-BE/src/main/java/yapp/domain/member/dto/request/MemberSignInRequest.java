@@ -1,16 +1,14 @@
 package yapp.domain.member.dto.request;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import yapp.common.oauth.entity.ProviderType;
 
 @Getter
 @Setter
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MemberSignInRequest {
   String memberId;
-  ProviderType providerType;
-  String email;
-  String nickname;
 }
