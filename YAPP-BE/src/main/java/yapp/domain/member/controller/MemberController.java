@@ -77,12 +77,10 @@ public class MemberController {
   public ApiResponse checkNickname(
     @RequestParam(name = "nickname") String nickname
   ) {
-    Map<String, Boolean> result = new HashMap<>();
     boolean duplicateConfirm = this.memberService.checkDuplicateNickname(nickname);
-    result.put("existence", duplicateConfirm);
 
-    return duplicateConfirm ? ApiResponse.success("exist_confirm", duplicateConfirm)
-      : ApiResponse.success("exist_confirm", result);
+    return duplicateConfirm ? ApiResponse.success("exist_confirm", true)
+      : ApiResponse.success("exist_confirm", false);
   }
 
   @GetMapping("/check/register")
