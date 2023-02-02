@@ -1,5 +1,7 @@
 package yapp.domain.townMap.controller;
 
+import static yapp.common.config.Const.NON_USER;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +20,12 @@ import yapp.domain.townMap.service.TownMapService;
 @Tag(name = "[화면]-동네지도")
 public class TownMapController {
 
-  private final TownMapService locationService;
+  private final TownMapService townMapService;
 
   public TownMapController(
-    TownMapService locationService
+    TownMapService townMapService
   ){
-    this.locationService = locationService;
+    this.townMapService = townMapService;
   }
 
   @GetMapping("/location")
@@ -37,10 +39,10 @@ public class TownMapController {
     try {
       member_id = memberPrincipal.getUsername();
     } catch(NullPointerException e){
-      member_id = "Non-User";
+      member_id = NON_USER;
     }
 
-    LocationInfoResponse locationinfoResponse = this.locationService.getLocationInfo(
+    LocationInfoResponse locationinfoResponse = this.townMapService.getLocationInfo(
       member_id);
 
     return ApiResponse.success("location-info", locationinfoResponse);

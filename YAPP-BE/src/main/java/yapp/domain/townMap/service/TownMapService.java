@@ -1,5 +1,7 @@
 package yapp.domain.townMap.service;
 
+import static yapp.common.config.Const.NON_USER;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,6 +13,7 @@ import yapp.domain.member.entitiy.MemberWishTown;
 import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.townMap.converter.LocationConverter;
 import yapp.domain.townMap.dto.response.LocationInfoResponse;
+import yapp.domain.townMap.repository.InfraRepository;
 
 @Service
 @Slf4j
@@ -34,7 +37,7 @@ public class TownMapService {
 
     Location location;
 
-    if (memberId == "Non-User"){
+    if (memberId.equals(NON_USER)){
       location = this.locationRepository.getLocationByObjectId(365L)
         .orElseThrow();
     }
@@ -48,4 +51,5 @@ public class TownMapService {
 
     return locationConverter.toLocationInfo(location).get();
   }
+
 }
