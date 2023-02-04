@@ -24,6 +24,7 @@ import yapp.common.utils.HeaderUtil;
 import yapp.domain.member.dto.request.MemberSignUpRequest;
 import yapp.domain.member.dto.response.MemberInfoResponse;
 import yapp.domain.member.service.MemberService;
+import yapp.exception.base.member.MemberException.MemberSignUpFail;
 
 @RestController
 @RequestMapping("/app/members")
@@ -58,17 +59,13 @@ public class MemberController {
   public ApiResponse socialSignUp(
     @RequestBody MemberSignUpRequest memberSignUpRequest
   ) {
-    int isRegister = this.memberService.checkRegister(memberSignUpRequest.getMemberId());
-    if (isRegister != Const.NON_MEMBERS) {
-      return new ApiResponse(new ApiResponseHeader(400, "이미 가입된 회원 입니다"), null);
-    }
-
     String memberId = this.memberService.memberSignUp(memberSignUpRequest);
+
     if (StringUtils.hasText(memberId)) {
       return ApiResponse.success("signup", true);
+    } else {
+      throw new MemberSignUpFail("회원 가입에 실패하셨습니다.");
     }
-
-    return ApiResponse.signUpFail();
   }
 
   @GetMapping("/check/nickname")
@@ -77,12 +74,10 @@ public class MemberController {
   public ApiResponse checkNickname(
     @RequestParam(name = "nickname") String nickname
   ) {
-    Map<String, Boolean> result = new HashMap<>();
     boolean duplicateConfirm = this.memberService.checkDuplicateNickname(nickname);
-    result.put("existence", duplicateConfirm);
 
-    return duplicateConfirm ? ApiResponse.success("exist_confirm", duplicateConfirm)
-      : ApiResponse.success("exist_confirm", result);
+    return duplicateConfirm ? ApiResponse.success("exist_confirm", true)
+      : ApiResponse.success("exist_confirm", false);
   }
 
   @GetMapping("/check/register")

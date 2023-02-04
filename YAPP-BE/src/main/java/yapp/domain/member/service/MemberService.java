@@ -23,6 +23,7 @@ import yapp.domain.member.entitiy.WishStatus;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
 import yapp.domain.member.repository.MemberRepository;
 import yapp.domain.member.repository.MemberWishTownRepository;
+import yapp.exception.base.member.MemberException.DuplicateMember;
 
 @Slf4j
 @Service
@@ -70,6 +71,9 @@ public class MemberService {
   public String memberSignUp(
     MemberSignUpRequest memberSignUpRequest
   ) {
+    //회원 체크
+    duplicateMemberConfirm(memberSignUpRequest.getMemberId());
+
     Member signUpMember = this.memberConverter.toEntity(memberSignUpRequest);
 
     if (memberSignUpRequest.getObjectId() != null) {
@@ -81,6 +85,13 @@ public class MemberService {
     }
 
     return this.memberRepository.save(signUpMember).getMemberId();
+  }
+
+  public void duplicateMemberConfirm(
+    String memberId
+  ) {
+    this.memberRepository.findByMemberId(memberId)
+      .map(member -> {throw new DuplicateMember("이미 가입된 회원입니다");});
   }
 
   public int checkRegister(

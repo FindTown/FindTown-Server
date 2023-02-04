@@ -36,6 +36,8 @@ import yapp.common.utils.HeaderUtil;
 import yapp.domain.member.dto.request.MemberSignInRequest;
 import yapp.domain.member.entitiy.MemberRefreshToken;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
+import yapp.exception.base.member.MemberException.InvalidToken;
+import yapp.exception.base.member.MemberException.MemberTokenExpired;
 
 @Slf4j
 @RestController
@@ -75,28 +77,27 @@ public class AuthController {
     int registerCheck = Integer.parseInt(loginData.get("register_check"));
     result.put("register_check", registerCheck);
 
-    switch (registerCheck) {
-      case Const.USE_MEMBERS:
-        long refreshTokenExpiry = Long.parseLong(loginData.get("refresh_token_expiry"));
-        int cookieMaxAge = (int) refreshTokenExpiry / 60;
-        int cookieMaxAgeForAccess = (int) appProperties.getAuth().getTokenExpiry() / 1000;
+    if (registerCheck == Const.USE_MEMBERS) {
+      long accessTokenExpiry = Long.parseLong(loginData.get("access_token_expiry"));
+      long refreshTokenExpiry = Long.parseLong(loginData.get("refresh_token_expiry"));
+      int cookieMaxAge = (int) refreshTokenExpiry / 60;
+      int cookieMaxAgeForAccess = (int) appProperties.getAuth().getTokenExpiry() / 1000;
 
-        // access_token 담기
-        CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
-        CookieUtil.addCookieForAccess(
-          response, ACCESS_TOKEN, loginData.get("access_token"), cookieMaxAgeForAccess);
+      // access_token 담기
+      CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
+      CookieUtil.addCookieForAccess(
+        response, ACCESS_TOKEN, loginData.get("access_token"), cookieMaxAgeForAccess);
 
-        // refresh_token 담기
-        CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
-        CookieUtil.addCookie(response, REFRESH_TOKEN, loginData.get("refresh_token"), cookieMaxAge);
+      // refresh_token 담기
+      CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
+      CookieUtil.addCookie(response, REFRESH_TOKEN, loginData.get("refresh_token"), cookieMaxAge);
 
-        result.put("access_token", loginData.get("access_token"));
-        result.put("refresh_token", loginData.get("refresh_token"));
-        return new ApiResponse(new ApiResponseHeader(200, "회원 계정입니다."), result);
-      case Const.NON_MEMBERS:
-        return new ApiResponse(new ApiResponseHeader(400, "비회원 계정입니다."), result);
+      result.put("access_token", loginData.get("access_token"));
+      result.put("access_token_expiry", accessTokenExpiry);
+      result.put("refresh_token", loginData.get("refresh_token"));
+      result.put("refresh_token_expiry", refreshTokenExpiry);
     }
-    return ApiResponse.fail();
+    return new ApiResponse(new ApiResponseHeader(200, "회원 계정입니다."), result);
   }
 
   @PostMapping("/login/confirm")
@@ -120,10 +121,15 @@ public class AuthController {
     HttpServletResponse response
   ) {
     String accessToken = HeaderUtil.getAccessToken(request);
+    if (!StringUtils.hasText(accessToken)) {
+      throw new InvalidToken("유효하지 않는 토큰입니다.");
+    }
+
     String isUnable = (String) redisTemplate.opsForValue().get(accessToken);
     if (StringUtils.hasText(isUnable)) {
-      return new ApiResponse(new ApiResponseHeader(401, "사용 불가능한 토큰입니다"), null);
+      throw new InvalidToken("사용 불가능한 토큰입니다");
     }
+    AuthToken newAccessToken;
 
     String refreshToken = CookieUtil.getCookie(request, REFRESH_TOKEN)
       .map(Cookie::getValue)
@@ -149,7 +155,7 @@ public class AuthController {
         redisTemplate.opsForValue().set(accessToken, "logout", expiration, TimeUnit.MILLISECONDS);
 
         //새 토큰 발급
-        AuthToken newAccessToken = authTokenProvider.createAuthToken(
+        newAccessToken = authTokenProvider.createAuthToken(
           memberId,
           RoleType.USER.getCode(),
           new Date(now.getTime() + appProperties.getAuth().getTokenExpiry())
@@ -160,11 +166,13 @@ public class AuthController {
         CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
         CookieUtil.addCookieForAccess(
           response, ACCESS_TOKEN, newAccessToken.getToken(), cookieMaxAgeForAccess);
-
-        return ApiResponse.success("access_token", newAccessToken);
+      } else {
+        throw new MemberTokenExpired("REFRESH TOKEN 정보가 일치하지 않습니다.");
       }
-      return ApiResponse.notEqualRefreshToken();
+    } else {
+      throw new MemberTokenExpired("만료된 REFRESH TOKEN 입니다. 로그인을 다시 진행해주세요");
     }
-    return ApiResponse.expiredRefreshToken();
+
+    return ApiResponse.success("access_token", newAccessToken);
   }
 }
