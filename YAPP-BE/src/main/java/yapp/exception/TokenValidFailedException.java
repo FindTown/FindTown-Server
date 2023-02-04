@@ -1,4 +1,4 @@
-package yapp.common.exception;
+package yapp.exception;
 
 public class TokenValidFailedException extends RuntimeException {
 
