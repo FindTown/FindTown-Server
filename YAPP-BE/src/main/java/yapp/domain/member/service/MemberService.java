@@ -1,6 +1,7 @@
 package yapp.domain.member.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import yapp.domain.member.entitiy.WishStatus;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
 import yapp.domain.member.repository.MemberRepository;
 import yapp.domain.member.repository.MemberWishTownRepository;
+import yapp.exception.base.member.MemberException.DuplicateMember;
 
 @Slf4j
 @Service
@@ -69,6 +71,9 @@ public class MemberService {
   public String memberSignUp(
     MemberSignUpRequest memberSignUpRequest
   ) {
+    //회원 체크
+    duplicateMemberConfirm(memberSignUpRequest.getMemberId());
+
     Member signUpMember = this.memberConverter.toEntity(memberSignUpRequest);
 
     if (memberSignUpRequest.getObjectId() != null) {
@@ -82,12 +87,21 @@ public class MemberService {
     return this.memberRepository.save(signUpMember).getMemberId();
   }
 
+  public void duplicateMemberConfirm(
+    String memberId
+  ) {
+    this.memberRepository.findByMemberId(memberId)
+      .map(member -> {throw new DuplicateMember("이미 가입된 회원입니다");});
+  }
+
   public int checkRegister(
     String memberId
   ) {
-    Member member = this.memberRepository.findByMemberId(memberId)
-      .orElseThrow(() -> new UsernameNotFoundException("회원을 찾을 수 없습니다."));
-    return member.getUseStatus();
+    Optional<Member> member = this.memberRepository.findByMemberId(memberId);
+    if (member.isEmpty()) {
+      return Const.NON_MEMBERS;
+    }
+    return member.get().getUseStatus();
   }
 
   @Transactional

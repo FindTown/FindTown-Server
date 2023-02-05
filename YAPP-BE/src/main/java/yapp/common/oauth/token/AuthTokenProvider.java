@@ -16,7 +16,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import yapp.common.exception.TokenValidFailedException;
+import yapp.exception.TokenValidFailedException;
 
 @Slf4j
 public class AuthTokenProvider implements AuthenticationProvider {
