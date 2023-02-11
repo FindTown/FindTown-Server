@@ -8,4 +8,6 @@ public class Const {
   public static final int USE_MEMBERS = 1;
   public static final int QUIT_MEMBERS = 2;
   public static final String NON_USER = "Non-User";
+
+  public static final double DIVIDE_NUM = 2.0;
 }
