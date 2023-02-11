@@ -1,11 +1,11 @@
 package yapp.domain.town.repository;
 
 import static yapp.domain.member.entitiy.YN.Y;
-import static yapp.domain.town.entity.QInfra.infra;
-import static yapp.domain.town.entity.QPlace.place;
 import static yapp.domain.town.entity.QSubway.subway;
 import static yapp.domain.town.entity.QTown.town;
 import static yapp.domain.town.entity.QTownSubway.townSubway;
+import static yapp.domain.townMap.entity.QInfra.infra;
+import static yapp.domain.townMap.entity.QPlace.place;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;

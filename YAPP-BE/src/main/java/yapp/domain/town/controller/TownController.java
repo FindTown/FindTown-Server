@@ -35,7 +35,7 @@ public class TownController {
 
   @PostMapping("/filter")
   @Operation(summary = "동네 필터 검색")
-  @Tag(name = "[필터]-동네 찾기")
+  @Tag(name = "[화면]-동네 찾기")
   public ApiResponse getTownFilter(
     @CurrentAuthPrincipal User memberPrincipal,
     @RequestBody TownFilterRequest townFilterRequest

@@ -4,8 +4,8 @@ import com.querydsl.core.annotations.QueryProjection;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
-import yapp.domain.town.entity.Place;
 import yapp.domain.town.entity.TownSubway;
+import yapp.domain.townMap.entity.Place;
 
 @Getter
 @Setter
