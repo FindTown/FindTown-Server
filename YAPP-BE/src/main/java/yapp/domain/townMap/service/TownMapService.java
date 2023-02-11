@@ -16,9 +16,12 @@ import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.townMap.converter.LocationConverter;
 import yapp.domain.townMap.dto.response.InfraPlaceDto;
 import yapp.domain.townMap.dto.response.LocationInfoResponse;
+import yapp.domain.townMap.dto.response.ThemePlaceDto;
 import yapp.domain.townMap.entity.Infra;
+import yapp.domain.townMap.entity.Theme;
 import yapp.domain.townMap.repository.InfraRepository;
 import yapp.domain.townMap.repository.PlaceRepository;
+import yapp.domain.townMap.repository.ThemeRepository;
 
 @Service
 @Slf4j
@@ -28,6 +31,7 @@ public class TownMapService {
   private final LocationRepository locationRepository;
   private final MemberWishTownRepository memberWishTownRepository;
   private final InfraRepository infraRepository;
+  private final ThemeRepository themeRepository;
   private final PlaceRepository placeRepository;
   private final LocationConverter locationConverter;
 
@@ -66,6 +70,24 @@ public class TownMapService {
     }
 
     return infraPlaceListHashMap;
+  }
+
+  public HashMap<String, Object> getThemePlaceInfo(Long object_id, String category) {
+
+    HashMap<String, Object> listHashMap = new HashMap<>();
+
+    List<Theme> themeList = themeRepository.findThemeByCategory(category);
+
+    for (int i=0; i<themeList.size(); i++){
+      List<ThemePlaceDto> themePlaceList = placeRepository.findByTheme(object_id, category, themeList.get(i).getSubCategory())
+        .stream()
+        .map(ThemePlaceDto::new)
+        .collect(Collectors.toList());;
+
+      listHashMap.put(themeList.get(i).getSubCategoryName(), themePlaceList);
+    }
+
+    return listHashMap;
   }
 
 }
