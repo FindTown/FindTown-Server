@@ -55,4 +55,14 @@ public class TownMapController {
     return ApiResponse.success(townMapService.getInfraPlaceInfo(object_id, category));
   }
 
+  @GetMapping("/location/{object_id}/theme/{category}")
+  @Operation(summary = "동네 테마지도 장소 조회")
+  public ApiResponse getThemePlaceInfo(
+    @PathVariable Long object_id,
+    @PathVariable String category
+  ){
+
+    return ApiResponse.success(townMapService.getThemePlaceInfo(object_id, category));
+  }
+
 }
