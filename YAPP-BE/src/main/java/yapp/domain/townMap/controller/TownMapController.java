@@ -4,12 +4,14 @@ import static yapp.common.config.Const.NON_USER;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import yapp.common.response.ApiResponse;
 import yapp.common.security.CurrentAuthPrincipal;
@@ -28,19 +30,20 @@ public class TownMapController {
   @GetMapping("/location")
   @Operation(summary = "동네 지도 좌표 조회")
   public ApiResponse getLocationInfo(
-    @CurrentAuthPrincipal User memberPrincipal
+    @CurrentAuthPrincipal User memberPrincipal,
+    @RequestParam(value = "id", required = false) Optional<String> objectId
   ){
 
-    String member_id;
+    String memberId;
 
     try {
-      member_id = memberPrincipal.getUsername();
+      memberId = memberPrincipal.getUsername();
     } catch(NullPointerException e){
-      member_id = NON_USER;
+      memberId = NON_USER;
     }
 
     LocationInfoResponse locationinfoResponse = this.townMapService.getLocationInfo(
-      member_id);
+      memberId, objectId);
 
     return ApiResponse.success("location-info", locationinfoResponse);
   }
