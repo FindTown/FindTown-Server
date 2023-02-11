@@ -1,13 +1,20 @@
 package yapp.domain.town.repository;
 
+import static com.querydsl.core.group.GroupBy.groupBy;
+import static com.querydsl.core.group.GroupBy.list;
 import static yapp.domain.member.entitiy.YN.Y;
+import static yapp.domain.town.entity.QMood.mood;
 import static yapp.domain.town.entity.QSubway.subway;
 import static yapp.domain.town.entity.QTown.town;
+import static yapp.domain.town.entity.QTownHotPlace.townHotPlace;
+import static yapp.domain.town.entity.QTownMood.townMood;
+import static yapp.domain.town.entity.QTownPopular.townPopular;
 import static yapp.domain.town.entity.QTownSubway.townSubway;
 import static yapp.domain.townMap.entity.QInfra.infra;
 import static yapp.domain.townMap.entity.QPlace.place;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
@@ -15,9 +22,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 import yapp.domain.town.dto.QTownDto;
+import yapp.domain.town.dto.TownDetailDto;
 import yapp.domain.town.dto.TownDto;
 import yapp.domain.town.entity.FilterStatus;
 import yapp.domain.town.entity.InfraStatus;
+import yapp.domain.town.entity.Mood;
+import yapp.domain.town.entity.Subway;
+import yapp.domain.town.entity.TownHotPlace;
 
 @Repository
 public class TownCustomRepositoryImpl implements
@@ -58,6 +69,68 @@ public class TownCustomRepositoryImpl implements
       .on(place.infra.id.eq(infra.id), eqInfraType(filterStatus))
       .where(town.useStatus.eq(Y))
       .fetch();
+  }
+
+  @Override
+  public List<TownDetailDto> getTownDetailInfo(Long objectId) {
+    return jpaQueryFactory
+      .from(town)
+      .innerJoin(townSubway)
+      .on(town.objectId.eq(townSubway.town.objectId))
+      .innerJoin(subway)
+      .on(townSubway.subway.stationCd.eq(subway.stationCd))
+      .innerJoin(townMood)
+      .on(town.objectId.eq(townMood.town.objectId))
+      .innerJoin(mood)
+      .on(townMood.mood.eq(mood))
+      .innerJoin(townPopular)
+      .on(town.objectId.eq(townPopular.objectId))
+      .innerJoin(townHotPlace)
+      .on(town.objectId.eq(townHotPlace.objectId))
+      .where(town.objectId.eq(objectId), town.useStatus.eq(Y))
+      .transform(
+        groupBy(town.objectId).list(
+          Projections.fields(
+            TownDetailDto.class,
+            town.objectId,
+            town.townIntroduction,
+            town.reliefYn,
+            list(
+              Projections.fields(
+                Subway.class,
+                subway.seq,
+                subway.stationCd,
+                subway.stationNm,
+                subway.stationNmEng,
+                subway.lineNum
+              )
+            ).as("townSubwayList"),
+            list(
+              Projections.fields(
+                Mood.class,
+                mood.id,
+                mood.categoryId,
+                mood.categoryNm,
+                mood.keyword
+              )
+            ).as("townMoodList"),
+            townPopular,
+            list(
+              Projections.fields(
+                TownHotPlace.class,
+                townHotPlace.seq,
+                townHotPlace.objectId,
+                townHotPlace.hotPlaceNm
+              )
+            ).as("townHotPlaceList"),
+            town.lifeRate,
+            town.crimeRate,
+            town.trafficRate,
+            town.liveRank,
+            town.cleanlinessRank
+          )
+        )
+      );
   }
 
   private BooleanBuilder subwayContain(List<String> stationCondition) {
