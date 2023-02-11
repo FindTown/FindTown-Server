@@ -14,4 +14,6 @@ public class TownFilterResponse {
   private int trafficRate;
   private String reliefYn;
   private boolean wishTown;
+  private int liveRank;            //살기 좋은 동네
+  private String cleanlinessRank;     //청결도 -> TOP10 반환
 }
