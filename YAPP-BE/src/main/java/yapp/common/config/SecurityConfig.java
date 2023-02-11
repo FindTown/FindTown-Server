@@ -68,7 +68,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .permitAll()
       .antMatchers(
         "/auth/token", "/oauth2/**", "/auth/**", "/health", "/oauth/redirect", "/auth/login")
-      .permitAll() // Security 허용 Url      .antMatchers("/login").permitAll()
+      .permitAll() // Security 허용 Url
       .antMatchers("/register")
       .permitAll()
       .antMatchers("/register/**")
@@ -76,6 +76,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .antMatchers("/app/members/**")
       .permitAll()
       .antMatchers("/app/townMap/**")
+      .permitAll()
+      .antMatchers("/app/town/filter")
       .permitAll()
       .antMatchers("/refresh")
       .permitAll()
