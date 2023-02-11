@@ -75,7 +75,7 @@ dependencies {
 //query dsl
 apply plugin: "com.ewerk.gradle.plugins.querydsl"
 
-def querydslSrcDir = 'src/main/generated'
+def querydslSrcDir = 'build/generated'
 querydsl {
     library = "com.querydsl:querydsl-apt"
     jpa = true
