@@ -13,21 +13,24 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "town_popular")
-public class TownPopular {
+@Table(name = "infra")
+public class Infra {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "seq", columnDefinition = "BIGINT")
-  private Long seq;
+  @Column(name = "id")
+  private Long id;
 
-  @Column(name = "object_id")
-  private Long objectId;
+  @Column(name = "category")
+  private String category;
 
-  @Column(name = "popular_generation", columnDefinition = "TINYINT")
-  private int popularGeneration;
+  @Column(name = "sub_category")
+  private String subCategory;
 
-  @Column(name = "popular_rate", columnDefinition = "TINYINT")
-  private int popularRate;
+  @Column(name = "category_name")
+  private String categoryName;
+
+  @Column(name = "sub_category_name")
+  private String subCategoryName;
 
 }
