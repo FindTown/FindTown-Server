@@ -2,6 +2,7 @@ package yapp.domain.town.repository;
 
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
+import static yapp.common.domain.QLocation.location;
 import static yapp.domain.member.entitiy.YN.Y;
 import static yapp.domain.town.entity.QMood.mood;
 import static yapp.domain.town.entity.QSubway.subway;
@@ -12,7 +13,6 @@ import static yapp.domain.town.entity.QTownPopular.townPopular;
 import static yapp.domain.town.entity.QTownSubway.townSubway;
 import static yapp.domain.townMap.entity.QInfra.infra;
 import static yapp.domain.townMap.entity.QPlace.place;
-import static yapp.common.domain.QLocation.location;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
@@ -27,9 +27,9 @@ import yapp.domain.town.dto.TownDetailDto;
 import yapp.domain.town.dto.TownDto;
 import yapp.domain.town.entity.FilterStatus;
 import yapp.domain.town.entity.InfraStatus;
-import yapp.domain.town.entity.Town;
 import yapp.domain.town.entity.Mood;
 import yapp.domain.town.entity.Subway;
+import yapp.domain.town.entity.Town;
 import yapp.domain.town.entity.TownHotPlace;
 
 @Repository
@@ -76,13 +76,14 @@ public class TownCustomRepositoryImpl implements
   @Override
   public List<Town> getTownSearchList(
     String sggNm
-  ){
+  ) {
     return jpaQueryFactory
       .selectFrom(town)
       .innerJoin(location)
       .on(town.objectId.eq(location.objectId))
       .where(location.sggNm.eq(sggNm), town.useStatus.eq(Y))
       .fetch();
+  }
 
   @Override
   public List<TownDetailDto> getTownDetailInfo(Long objectId) {
