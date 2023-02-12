@@ -34,16 +34,16 @@ public class Place {
   private String address;
 
   @Column(name="x")
-  private Long x;
+  private Double x;
 
   @Column(name="y")
-  private Long y;
+  private Double y;
 
   @Column(name="object_id")
   private Long objectId;
 
   @Builder
-  public Place(Long id, Infra infra, Theme theme, String name, String address, Long x, Long y, Long objectId){
+  public Place(Long id, Infra infra, Theme theme, String name, String address, Double x, Double y, Long objectId){
     this.id = id;
     this.infra = infra;
     this.theme = theme;
