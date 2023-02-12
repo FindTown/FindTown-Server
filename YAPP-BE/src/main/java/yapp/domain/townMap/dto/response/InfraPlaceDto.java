@@ -16,10 +16,10 @@ public class InfraPlaceDto {
   private String name;
 
   @Schema(description = "장소 x 좌표")
-  private Long x;
+  private Double x;
 
   @Schema(description = "장소 y 좌표")
-  private Long y;
+  private Double y;
 
   @Builder
   public InfraPlaceDto(Place place){
