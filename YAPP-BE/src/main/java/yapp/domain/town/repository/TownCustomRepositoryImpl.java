@@ -62,7 +62,7 @@ public class TownCustomRepositoryImpl implements
       .innerJoin(townSubway)
       .on(town.objectId.eq(townSubway.town.objectId))
       .innerJoin(subway)
-      .on(townSubway.subway.stationCd.eq(subway.stationCd), subwayContain(stationCondition))
+      .on(townSubway.subway.id.eq(subway.id), subwayContain(stationCondition))
       .innerJoin(place)
       .on(town.objectId.eq(place.objectId))
       .innerJoin(infra)
@@ -78,7 +78,7 @@ public class TownCustomRepositoryImpl implements
       .innerJoin(townSubway)
       .on(town.objectId.eq(townSubway.town.objectId))
       .innerJoin(subway)
-      .on(townSubway.subway.stationCd.eq(subway.stationCd))
+      .on(townSubway.subway.id.eq(subway.id))
       .innerJoin(townMood)
       .on(town.objectId.eq(townMood.town.objectId))
       .innerJoin(mood)
@@ -98,10 +98,7 @@ public class TownCustomRepositoryImpl implements
             list(
               Projections.fields(
                 Subway.class,
-                subway.seq,
-                subway.stationCd,
-                subway.stationNm,
-                subway.stationNmEng,
+                subway.id,
                 subway.lineNum
               )
             ).as("townSubwayList"),
