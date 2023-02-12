@@ -29,7 +29,7 @@ public class TownSubway {
   private Town town;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "subway_station_cd", referencedColumnName = "station_cd", nullable = false)
+  @JoinColumn(name = "subway_id", referencedColumnName = "id", nullable = false)
   private Subway subway;
 
 }

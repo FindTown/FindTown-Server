@@ -7,6 +7,7 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,7 @@ import yapp.domain.town.dto.request.TownFilterRequest;
 import yapp.domain.town.dto.request.TownSearchRequest;
 import yapp.domain.town.dto.response.TownFilterResponse;
 import yapp.domain.town.dto.response.TownSearchResponse;
+import yapp.domain.town.dto.response.TownInfoResponse;
 import yapp.domain.town.service.TownService;
 
 @Slf4j
@@ -68,4 +70,16 @@ public class TownController {
     return ApiResponse.success("town_search", townSearchResponse);
   }
 
+  @GetMapping("/introduce/{objectId}")
+  @Operation(summary = "동네 소개 정보")
+  @Tag(name = "[화면]-동네 소개")
+  public ApiResponse getTownDetailInfo(
+    @CurrentAuthPrincipal User memberPrincipal,
+    @PathVariable(name = "objectId") Long objectId
+  ) {
+    TownInfoResponse townInfoResponse = this.townService.getTownDetailInfo(
+      memberPrincipal == null ? Optional.empty()
+        : Optional.ofNullable(memberPrincipal.getUsername()), objectId);
+    return ApiResponse.success("town_info", townInfoResponse);
+  }
 }

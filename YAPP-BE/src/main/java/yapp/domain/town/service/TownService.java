@@ -15,14 +15,17 @@ import org.springframework.stereotype.Service;
 import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.town.comparator.TownComparator;
 import yapp.domain.town.converter.TownConverter;
+import yapp.domain.town.dto.TownDetailDto;
 import yapp.domain.town.dto.TownDto;
 import yapp.domain.town.dto.request.TownFilterRequest;
 import yapp.domain.town.dto.request.TownSearchRequest;
 import yapp.domain.town.dto.response.TownFilterResponse;
 import yapp.domain.town.dto.response.TownSearchResponse;
+import yapp.domain.town.dto.response.TownInfoResponse;
 import yapp.domain.town.entity.FilterStatus;
 import yapp.domain.town.entity.Town;
 import yapp.domain.town.repository.TownCustomRepository;
+import yapp.exception.base.town.TownException.TownNotFound;
 
 @Slf4j
 @Service
@@ -51,11 +54,7 @@ public class TownService {
     Set<Long> memberWishTownList = new HashSet<>();
 
     // 1. 회원 정보가 있다면 찜목록 상태 변경을 해준다. -> memberId 당 object_id 리스트 조회
-    if (memberId.isPresent()) {
-      memberWishTownList = memberWishTownRepository.getMemberWishTownsByMemberId(
-          memberId.get())
-        .stream().map(town -> town.getLocation().getObjectId()).collect(Collectors.toSet());
-    }
+    memberWishTownList = getMemberWishTownList(memberId, memberWishTownList);
 
     // 2. 인프라, 교통으로 동네 조회
     List<TownDto> townFilterList = townCustomRepository.getTownFilterList(
@@ -99,18 +98,41 @@ public class TownService {
       townSearchRequest.getSggNm());
 
     Set<Long> memberWishTownList = new HashSet<>();
-
-    if (memberId.isPresent()) {
-      memberWishTownList = memberWishTownRepository.getMemberWishTownsByMemberId(
-          memberId.get())
-        .stream().map(town -> town.getLocation().getObjectId()).collect(Collectors.toSet());
-    }
-
     Set<Long> finalMemberWishTownList = memberWishTownList;
 
     return townSearchList.stream()
       .map(town -> townConverter.toSearchTown(town, finalMemberWishTownList))
       .collect(Collectors.toList());
+  }
+
+  public TownInfoResponse getTownDetailInfo(
+    Optional<String> memberId,
+    Long objectId
+  ) {
+    // 동내 조회
+    Set<Long> memberWishTownList = new HashSet<>();
+
+    // 1. 회원 정보가 있다면 찜목록 상태 변경을 해준다. -> memberId 당 object_id 리스트 조회
+    memberWishTownList = getMemberWishTownList(memberId, memberWishTownList);
+
+    // 2. 동네 데이터 조회
+    List<TownDetailDto> townDetailDto = this.townCustomRepository.getTownDetailInfo(objectId);
+    if (townDetailDto.isEmpty()) {
+      throw new TownNotFound("아직 동네가 오픈되지 않았습니다.");
+    }
+    return townConverter.toTownDetailInfo(townDetailDto.get(0), memberWishTownList);
+  }
+
+  private Set<Long> getMemberWishTownList(
+    Optional<String> memberId,
+    Set<Long> memberWishTownList
+  ) {
+    if (memberId.isPresent()) {
+      memberWishTownList = memberWishTownRepository.getMemberWishTownsByMemberId(
+          memberId.get())
+        .stream().map(town -> town.getLocation().getObjectId()).collect(Collectors.toSet());
+    }
+    return memberWishTownList;
   }
 
   private void filterInfraType(
