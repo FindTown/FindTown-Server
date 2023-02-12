@@ -79,6 +79,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .permitAll()
       .antMatchers("/app/town/filter")
       .permitAll()
+      .antMatchers("/app/town/introduce/**")
+      .permitAll()
       .antMatchers("/refresh")
       .permitAll()
       .antMatchers("/member/**")

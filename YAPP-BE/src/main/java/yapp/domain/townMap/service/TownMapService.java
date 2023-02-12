@@ -5,6 +5,7 @@ import static yapp.common.config.Const.NON_USER;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,20 +36,31 @@ public class TownMapService {
   private final PlaceRepository placeRepository;
   private final LocationConverter locationConverter;
 
-  public LocationInfoResponse getLocationInfo (String memberId) {
+  public LocationInfoResponse getLocationInfo (String memberId, Optional<String> objectId) {
 
     Location location;
 
-    if (memberId.equals(NON_USER)){
-      location = this.locationRepository.getLocationByObjectId(365L)
-        .orElseThrow();
-    }
-    else {
-      List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberId(
-        memberId).stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
+    if (!objectId.isEmpty()) {
 
-      Collections.shuffle(memberWishTownList);
-      location = memberWishTownList.get(0);
+      log.info("도달2-in");
+      location = this.locationRepository.getLocationByObjectId(
+          Long.valueOf(objectId.get()))
+        .orElseThrow();
+
+      log.info("도달2-out");
+    }
+    else{
+      if (memberId.equals(NON_USER)){
+        location = this.locationRepository.getLocationByObjectId(365L)
+          .orElseThrow();
+      }
+      else {
+        List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberId(memberId)
+          .stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
+
+        Collections.shuffle(memberWishTownList);
+        location = memberWishTownList.get(0);
+      }
     }
 
     return locationConverter.toLocationInfo(location).get();
