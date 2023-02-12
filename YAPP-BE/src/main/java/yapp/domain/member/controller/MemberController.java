@@ -119,4 +119,19 @@ public class MemberController {
     this.memberService.memberLogout(accessToken, memberPrincipal.getUsername());
     return ApiResponse.success("logout", true);
   }
+
+  @PostMapping("/wishtown")
+  @PreAuthorize("hasRole('USER')")
+  @Operation(summary = "찜 등록/해제")
+  @Tag(name = "[찜]")
+  public ApiResponse setMemberWishTown(
+    @CurrentAuthPrincipal User memberPrincipal,
+    @RequestParam String object_id
+  ){
+    this.memberService.setMemberWishTown(object_id, memberPrincipal.getUsername());
+
+    return ApiResponse.success("wishTown", true);
+  }
+
+
 }
