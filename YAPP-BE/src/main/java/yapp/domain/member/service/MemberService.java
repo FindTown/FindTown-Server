@@ -1,5 +1,8 @@
 package yapp.domain.member.service;
 
+import static yapp.domain.member.entitiy.WishStatus.NO;
+import static yapp.domain.member.entitiy.WishStatus.YES;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +84,7 @@ public class MemberService {
           memberSignUpRequest.getObjectId())
         .orElseThrow(() -> new RuntimeException("입력한 동네는 현재 존재하지 않습니다."));
       this.memberWishTownRepository.save(
-        new MemberWishTown(memberSignUpRequest.getMemberId(), location, WishStatus.YES));
+        new MemberWishTown(memberSignUpRequest.getMemberId(), location, YES));
     }
 
     return this.memberRepository.save(signUpMember).getMemberId();
@@ -124,4 +127,34 @@ public class MemberService {
   public boolean checkDuplicateNickname(String nickname) {
     return this.memberRepository.existsAllByNickname(nickname);
   }
+
+  @Transactional
+  public void setMemberWishTown(
+    String objectId,
+    String memberId
+  ) {
+    Location location = this.locationRepository.getLocationByObjectId(Long.valueOf(objectId))
+      .orElseThrow();
+
+    MemberWishTown wishTown = this.memberWishTownRepository.getMemberWishTownByMemberIdAndLocation(
+      memberId, location).orElseThrow();
+
+    if (wishTown != null) {
+
+      if (wishTown.getWishStatus().equals(YES)) {
+        wishTown.changeWishStatus(NO);
+      }
+      else {
+        wishTown.changeWishStatus(YES);
+      }
+    }
+    else {
+      memberWishTownRepository.save(MemberWishTown.builder()
+        .wishStatus(YES)
+        .memberId(memberId)
+        .location(location)
+        .build());
+    }
+  }
+
 }
