@@ -13,15 +13,17 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "subway")
-public class Subway {
+@Table(name = "town_hotplace")
+public class TownHotPlace {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", columnDefinition = "BIGINT")
-  private Long id;
+  @Column(name = "seq", columnDefinition = "BIGINT")
+  private Long seq;
 
-  @Column(name = "line_num", columnDefinition = "VARCHAR(50)")
-  private String lineNum;
+  @Column(name = "object_id")
+  private Long objectId;
 
+  @Column(name = "hotplace_nm")
+  private String hotPlaceNm;
 }
