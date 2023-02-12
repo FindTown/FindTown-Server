@@ -6,6 +6,7 @@ import static yapp.domain.town.entity.QTown.town;
 import static yapp.domain.town.entity.QTownSubway.townSubway;
 import static yapp.domain.townMap.entity.QInfra.infra;
 import static yapp.domain.townMap.entity.QPlace.place;
+import static yapp.common.domain.QLocation.location;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -18,6 +19,7 @@ import yapp.domain.town.dto.QTownDto;
 import yapp.domain.town.dto.TownDto;
 import yapp.domain.town.entity.FilterStatus;
 import yapp.domain.town.entity.InfraStatus;
+import yapp.domain.town.entity.Town;
 
 @Repository
 public class TownCustomRepositoryImpl implements
@@ -57,6 +59,18 @@ public class TownCustomRepositoryImpl implements
       .innerJoin(infra)
       .on(place.infra.id.eq(infra.id), eqInfraType(filterStatus))
       .where(town.useStatus.eq(Y))
+      .fetch();
+  }
+
+  @Override
+  public List<Town> getTownSearchList(
+    String sggNm
+  ){
+    return jpaQueryFactory
+      .selectFrom(town)
+      .innerJoin(location)
+      .on(town.objectId.eq(location.objectId))
+      .where(location.sggNm.eq(sggNm), town.useStatus.eq(Y))
       .fetch();
   }
 
