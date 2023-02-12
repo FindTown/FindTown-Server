@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.town.comparator.TownComparator;
@@ -17,12 +18,16 @@ import yapp.domain.town.converter.TownConverter;
 import yapp.domain.town.dto.TownDetailDto;
 import yapp.domain.town.dto.TownDto;
 import yapp.domain.town.dto.request.TownFilterRequest;
+import yapp.domain.town.dto.request.TownSearchRequest;
 import yapp.domain.town.dto.response.TownFilterResponse;
+import yapp.domain.town.dto.response.TownSearchResponse;
 import yapp.domain.town.dto.response.TownInfoResponse;
 import yapp.domain.town.entity.FilterStatus;
+import yapp.domain.town.entity.Town;
 import yapp.domain.town.repository.TownCustomRepository;
 import yapp.exception.base.town.TownException.TownNotFound;
 
+@Slf4j
 @Service
 public class TownService {
 
@@ -81,6 +86,22 @@ public class TownService {
     Set<Long> finalMemberWishTownList = memberWishTownList;
     return townFilterList.stream()
       .map(town -> townConverter.toFilterTown(town, finalMemberWishTownList))
+      .collect(Collectors.toList());
+  }
+
+  public List<TownSearchResponse> getTownSearch(
+    Optional<String> memberId,
+    TownSearchRequest townSearchRequest
+  ){
+
+    List<Town> townSearchList = townCustomRepository.getTownSearchList(
+      townSearchRequest.getSggNm());
+
+    Set<Long> memberWishTownList = new HashSet<>();
+    Set<Long> finalMemberWishTownList = memberWishTownList;
+
+    return townSearchList.stream()
+      .map(town -> townConverter.toSearchTown(town, finalMemberWishTownList))
       .collect(Collectors.toList());
   }
 
