@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import yapp.domain.town.dto.TownDto;
 import yapp.domain.town.dto.response.TownFilterResponse;
+import yapp.domain.town.dto.response.TownSearchResponse;
+import yapp.domain.town.entity.Town;
 
 @Component
 @RequiredArgsConstructor
@@ -23,6 +25,17 @@ public class TownConverter {
       .trafficRate(townDto.getTrafficRate())
       .reliefYn(townDto.getReliefYn())
       .wishTown(memberWishTownList.contains(townDto.getObjectId()))
+      .build();
+  }
+
+  public TownSearchResponse toSearchTown(
+    Town town,
+    Set<Long> memberWishTownList
+  ) {
+    return TownSearchResponse.builder()
+      .objectId(town.getObjectId())
+      .townIntroduction(town.getTownIntroduction())
+      .wishTown(memberWishTownList.contains((town.getObjectId())))
       .build();
   }
 
