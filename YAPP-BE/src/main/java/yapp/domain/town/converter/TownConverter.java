@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 import yapp.domain.town.dto.TownDetailDto;
 import yapp.domain.town.dto.TownDto;
 import yapp.domain.town.dto.response.TownFilterResponse;
-import yapp.domain.town.dto.response.TownSearchResponse;
-import yapp.domain.town.entity.Town;
 import yapp.domain.town.dto.response.TownInfoResponse;
+import yapp.domain.town.dto.response.TownSearchResponse;
 import yapp.domain.town.entity.Mood;
 import yapp.domain.town.entity.Subway;
+import yapp.domain.town.entity.Town;
 import yapp.domain.town.entity.TownHotPlace;
 
 @Component
@@ -41,7 +41,8 @@ public class TownConverter {
     return TownSearchResponse.builder()
       .objectId(town.getObjectId())
       .townIntroduction(town.getTownIntroduction())
-      .wishTown(memberWishTownList.contains((town.getObjectId())))
+      .wishTown(memberWishTownList.contains((town.getObjectId()))).build();
+  }
 
   public TownInfoResponse toTownDetailInfo(
     TownDetailDto townDetailDto,
