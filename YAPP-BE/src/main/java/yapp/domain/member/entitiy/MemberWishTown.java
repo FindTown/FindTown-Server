@@ -12,8 +12,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 import yapp.common.domain.BaseEntity;
 import yapp.common.domain.Location;
 
@@ -21,6 +23,7 @@ import yapp.common.domain.Location;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "member_wish_town")
+@DynamicUpdate
 public class MemberWishTown extends BaseEntity {
 
   @Id
@@ -39,6 +42,7 @@ public class MemberWishTown extends BaseEntity {
   @Column(name = "wish_status", columnDefinition = "VARCHAR(50)")
   private WishStatus wishStatus;
 
+  @Builder
   public MemberWishTown(
     String memberId,
     Location location,
@@ -47,5 +51,9 @@ public class MemberWishTown extends BaseEntity {
     this.memberId = memberId;
     this.location = location;
     this.wishStatus = wishStatus;
+  }
+
+  public void changeWishStatus(WishStatus status) {
+    this.wishStatus = status;
   }
 }
