@@ -86,17 +86,17 @@ public class TownCustomRepositoryImpl implements
   public List<TownDetailDto> getTownDetailInfo(Long objectId) {
     return jpaQueryFactory
       .from(town)
-      .innerJoin(townSubway)
+      .leftJoin(townSubway)
       .on(town.objectId.eq(townSubway.town.objectId))
-      .innerJoin(subway)
+      .leftJoin(subway)
       .on(townSubway.subway.id.eq(subway.id))
-      .innerJoin(townMood)
+      .leftJoin(townMood)
       .on(town.objectId.eq(townMood.town.objectId))
-      .innerJoin(mood)
+      .leftJoin(mood)
       .on(townMood.mood.eq(mood))
-      .innerJoin(townPopular)
+      .leftJoin(townPopular)
       .on(town.objectId.eq(townPopular.objectId))
-      .innerJoin(townHotPlace)
+      .leftJoin(townHotPlace)
       .on(town.objectId.eq(townHotPlace.objectId))
       .where(town.objectId.eq(objectId), town.useStatus.eq(Y))
       .transform(
