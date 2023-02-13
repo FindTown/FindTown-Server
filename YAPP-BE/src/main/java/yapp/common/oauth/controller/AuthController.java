@@ -3,23 +3,20 @@ package yapp.common.oauth.controller;
 import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.ACCESS_TOKEN;
 import static yapp.common.oauth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository.REFRESH_TOKEN;
 
-import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yapp.common.config.AppProperties;
@@ -32,11 +29,9 @@ import yapp.common.response.ApiResponse;
 import yapp.common.response.ApiResponseHeader;
 import yapp.common.security.CurrentAuthPrincipal;
 import yapp.common.utils.CookieUtil;
-import yapp.common.utils.HeaderUtil;
 import yapp.domain.member.dto.request.MemberSignInRequest;
 import yapp.domain.member.entitiy.MemberRefreshToken;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
-import yapp.exception.base.member.MemberException.InvalidToken;
 import yapp.exception.base.member.MemberException.MemberTokenExpired;
 
 @Slf4j
@@ -117,46 +112,22 @@ public class AuthController {
   @Operation(summary = "access_token 재발급")
   @Tag(name = "[권한/인증]")
   public ApiResponse reissueRefreshToken(
+    @RequestHeader(REFRESH_TOKEN) String refreshToken,
     HttpServletRequest request,
     HttpServletResponse response
   ) {
-    String accessToken = HeaderUtil.getAccessToken(request);
-    if (!StringUtils.hasText(accessToken)) {
-      throw new InvalidToken("유효하지 않는 토큰입니다.");
-    }
-
-    String isUnable = (String) redisTemplate.opsForValue().get(accessToken);
-    if (StringUtils.hasText(isUnable)) {
-      throw new InvalidToken("사용 불가능한 토큰입니다");
-    }
-    AuthToken newAccessToken;
-
-    String refreshToken = CookieUtil.getCookie(request, REFRESH_TOKEN)
-      .map(Cookie::getValue)
-      .orElse((null));
-    AuthToken authToken = authTokenProvider.convertAuthToken(accessToken);
-
     Date now = new Date();
-    Claims claims = authToken.getTokenClaims();
-    String memberId = claims.getSubject();
+    AuthToken newAccessToken;
     AuthToken authRefreshToken = authTokenProvider.convertAuthToken(refreshToken);
 
     if (authRefreshToken.validate()) {
 
-      Optional<MemberRefreshToken> memberRefreshToken = memberRefreshTokenRepository.findByMemberIdAndRefreshToken(
-        memberId, refreshToken);
-      if (memberRefreshToken.isEmpty()) {
-        log.info("Refresh 토큰이 null 입니다.");
-        return ApiResponse.invalidRefreshToken();
-      }
-      if (memberRefreshToken.get().getRefreshToken().equals(refreshToken)) {
-        //기존 토큰 사용 제한
-        Long expiration = authTokenProvider.getExpiration(accessToken);
-        redisTemplate.opsForValue().set(accessToken, "logout", expiration, TimeUnit.MILLISECONDS);
-
+      Optional<MemberRefreshToken> memberRefreshToken = memberRefreshTokenRepository.findByRefreshToken(
+        refreshToken);
+      if (memberRefreshToken.isPresent()) {
         //새 토큰 발급
         newAccessToken = authTokenProvider.createAuthToken(
-          memberId,
+          memberRefreshToken.get().getMemberId(),
           RoleType.USER.getCode(),
           new Date(now.getTime() + appProperties.getAuth().getTokenExpiry())
         );

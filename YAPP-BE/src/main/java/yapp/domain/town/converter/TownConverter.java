@@ -51,7 +51,7 @@ public class TownConverter {
     return TownInfoResponse.builder()
       .objectId(townDetailDto.getObjectId())
       .townExplanation(townDetailDto.getTownExplanation())
-      .reliefYn(townDetailDto.getReliefYn().equals("Y") ? "안심마을보안관 활동지" : null)
+      .reliefYn(townDetailDto.getReliefYn().equals("Y") ? "안심마을보안관 활동지" : "")
       .lifeRate(townDetailDto.getLifeRate())
       .crimeRate(townDetailDto.getCrimeRate())
       .trafficRate(townDetailDto.getTrafficRate())
@@ -62,17 +62,20 @@ public class TownConverter {
       .townSubwayList(townDetailDto.getTownSubwayList()
         .stream()
         .map(Subway::getLineNum)
+        .distinct()
         .collect(
           Collectors.toList()))
       .townMoodList(
         townDetailDto.getTownMoodList()
           .stream()
           .map(Mood::getKeyword)
+          .distinct()
           .collect(
             Collectors.toList()))
       .townHotPlaceList(townDetailDto.getTownHotPlaceList()
         .stream()
         .map(TownHotPlace::getHotPlaceNm)
+        .distinct()
         .collect(
           Collectors.toList()))
       .wishTown(memberWishTownList.contains(townDetailDto.getObjectId()))

@@ -20,8 +20,8 @@ import yapp.domain.town.dto.TownDto;
 import yapp.domain.town.dto.request.TownFilterRequest;
 import yapp.domain.town.dto.request.TownSearchRequest;
 import yapp.domain.town.dto.response.TownFilterResponse;
-import yapp.domain.town.dto.response.TownSearchResponse;
 import yapp.domain.town.dto.response.TownInfoResponse;
+import yapp.domain.town.dto.response.TownSearchResponse;
 import yapp.domain.town.entity.FilterStatus;
 import yapp.domain.town.entity.Town;
 import yapp.domain.town.repository.TownCustomRepository;
@@ -79,7 +79,6 @@ public class TownService {
 
     // - filter type별 정렬
     townFilterList = new ArrayList<>(townDataMap.values());
-
     filterInfraType(townFilterList, townFilterRequest.getFilterStatus());
 
     // - 찜 상태 등록
@@ -92,7 +91,7 @@ public class TownService {
   public List<TownSearchResponse> getTownSearch(
     Optional<String> memberId,
     TownSearchRequest townSearchRequest
-  ){
+  ) {
 
     List<Town> townSearchList = townCustomRepository.getTownSearchList(
       townSearchRequest.getSggNm());

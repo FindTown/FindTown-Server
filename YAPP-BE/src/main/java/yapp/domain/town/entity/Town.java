@@ -1,5 +1,6 @@
 package yapp.domain.town.entity;
 
+import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -17,8 +18,7 @@ import yapp.domain.member.entitiy.YN;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "town")
-public class Town {
-
+public class Town implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "seq", columnDefinition = "BIGINT")
