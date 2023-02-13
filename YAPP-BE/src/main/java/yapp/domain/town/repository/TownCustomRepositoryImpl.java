@@ -16,11 +16,8 @@ import static yapp.domain.townMap.entity.QPlace.place;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 import yapp.domain.town.dto.QTownDto;
 import yapp.domain.town.dto.TownDetailDto;
@@ -63,13 +60,13 @@ public class TownCustomRepositoryImpl implements
       .from(town)
       .innerJoin(townSubway)
       .on(town.objectId.eq(townSubway.town.objectId))
-      .innerJoin(subway)
-      .on(townSubway.subway.id.eq(subway.id), subwayContain(stationCondition))
-      .innerJoin(place)
+      .leftJoin(subway)
+      .on(townSubway.subway.id.eq(subway.id))
+      .leftJoin(place)
       .on(town.objectId.eq(place.objectId))
-      .innerJoin(infra)
-      .on(place.infra.id.eq(infra.id), eqInfraType(filterStatus))
-      .where(town.useStatus.eq(Y))
+      .leftJoin(infra)
+      .on(place.infra.id.eq(infra.id))
+      .where(town.useStatus.eq(Y), subwayContain(stationCondition), eqInfraType(filterStatus))
       .fetch();
   }
 
@@ -154,11 +151,15 @@ public class TownCustomRepositoryImpl implements
     return builder;
   }
 
-  private BooleanExpression eqInfraType(FilterStatus filterStatus) {
-    Set<String> infraStatuses = filterStatus.getInfraStatuses()
-      .stream().map(InfraStatus::getCode).collect(Collectors.toSet());
-
-    return infra.subCategory.in(infraStatuses);
+  private BooleanBuilder eqInfraType(FilterStatus filterStatus) {
+    List<InfraStatus> infraStaticCondition = filterStatus.getInfraStatuses();
+    BooleanBuilder builder = new BooleanBuilder();
+    infraStaticCondition.forEach(infraStatus -> {
+      builder.or(
+        infra.subCategory.eq(infraStatus.getCode())
+      );
+    });
+    return builder;
   }
 
 }
