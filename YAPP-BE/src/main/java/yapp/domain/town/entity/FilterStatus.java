@@ -2,6 +2,7 @@ package yapp.domain.town.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.Collections;
 import java.util.List;
 import lombok.Getter;
 
@@ -10,7 +11,8 @@ public enum FilterStatus {
   CONVENIENCE_FILTER("convenience", "001", "마트 & 편의점 + 생활 인프라 + 카페", convenienceFilterInfraList()),
   EXERCISE_FILTER("exercise", "002", "운동 인프라", exerciseFilterInfraList()),
   MEDICAL_FACILITY_FILTER("medical", "003", "병원&약국 인프라", medicalFilterInfraList()),
-  GREENERY_FILTER("greenery", "004", "녹지", greenFilterInfraList());
+  GREENERY_FILTER("greenery", "004", "녹지", greenFilterInfraList()),
+  NONE("", "005", "전체", Collections.emptyList());
 
   private final String value;
 

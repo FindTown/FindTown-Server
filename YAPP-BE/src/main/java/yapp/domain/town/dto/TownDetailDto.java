@@ -1,8 +1,8 @@
 package yapp.domain.town.dto;
 
-import com.querydsl.core.annotations.QueryProjection;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import yapp.domain.town.entity.Mood;
 import yapp.domain.town.entity.Subway;
@@ -11,6 +11,7 @@ import yapp.domain.town.entity.TownPopular;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class TownDetailDto {
 
   private Long objectId;
@@ -26,7 +27,6 @@ public class TownDetailDto {
   private int liveRank;
   private String cleanlinessRank;
 
-  @QueryProjection
   public TownDetailDto(
     Long objectId,
     String townExplanation,
