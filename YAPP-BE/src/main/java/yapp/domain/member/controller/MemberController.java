@@ -68,6 +68,17 @@ public class MemberController {
     }
   }
 
+  @DeleteMapping("/resign")
+  @PreAuthorize("hasRole('USER')")
+  @Operation(summary = "회원 탈퇴")
+  @Tag(name = "[화면]-마이페이지")
+  public ApiResponse resignMember(
+    @CurrentAuthPrincipal User memberPrincipal
+  ) {
+    this.memberService.removeMember(memberPrincipal.getUsername());
+    return ApiResponse.success("resign_member", true);
+  }
+
   @GetMapping("/check/nickname")
   @Operation(summary = "닉네임 중복 확인")
   @Tag(name = "[화면]-로그인/회원가입")
