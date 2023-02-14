@@ -4,7 +4,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import yapp.common.oauth.entity.ProviderType;
-import yapp.domain.member.entitiy.Member;
+import yapp.domain.member.entity.Member;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
@@ -17,7 +17,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
   );
 
   Optional<Member> findByMemberId(String memberId);
-  
+
   Optional<Member> findByMemberIdAndUseStatus(
     String memberId,
     int useStatus

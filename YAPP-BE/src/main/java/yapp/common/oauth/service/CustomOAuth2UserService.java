@@ -15,8 +15,8 @@ import yapp.common.oauth.entity.OAuth2UserInfoFactory;
 import yapp.common.oauth.entity.ProviderType;
 import yapp.common.oauth.entity.RoleType;
 import yapp.common.oauth.exception.OAuthProviderMissMatchException;
-import yapp.domain.member.entitiy.Member;
-import yapp.domain.member.entitiy.MemberPrincipal;
+import yapp.domain.member.entity.Member;
+import yapp.domain.member.entity.MemberPrincipal;
 import yapp.domain.member.repository.MemberRepository;
 
 @Slf4j
@@ -76,7 +76,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     if (!StringUtils.hasText(memberInfo.getNickname()) && !member.getNickname()
       .equals(memberInfo.getNickname())) {
-      member.setNickname(memberInfo.getNickname());
+      member.changeNickname(memberInfo.getNickname());
     }
 
     return member;
@@ -92,7 +92,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
       memberInfo.getNickname(),
       providerType,
       RoleType.USER,
-      null,
       null,
       null,
       0

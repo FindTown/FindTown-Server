@@ -1,7 +1,7 @@
 package yapp.domain.member.service;
 
-import static yapp.domain.member.entitiy.WishStatus.NO;
-import static yapp.domain.member.entitiy.WishStatus.YES;
+import static yapp.domain.member.entity.WishStatus.NO;
+import static yapp.domain.member.entity.WishStatus.YES;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,14 +19,18 @@ import yapp.common.repository.LocationRepository;
 import yapp.domain.member.converter.MemberConverter;
 import yapp.domain.member.dto.request.MemberSignUpRequest;
 import yapp.domain.member.dto.response.MemberInfoResponse;
-import yapp.domain.member.entitiy.Member;
-import yapp.domain.member.entitiy.MemberRefreshToken;
-import yapp.domain.member.entitiy.MemberWishTown;
-import yapp.domain.member.entitiy.WishStatus;
+import yapp.domain.member.entity.Member;
+import yapp.domain.member.entity.MemberRefreshToken;
+import yapp.domain.member.entity.MemberWishTown;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
 import yapp.domain.member.repository.MemberRepository;
 import yapp.domain.member.repository.MemberWishTownRepository;
+import yapp.domain.town.converter.TownResidentConverter;
+import yapp.domain.town.entity.TownResident;
+import yapp.domain.town.repository.TownResidentRepositroy;
 import yapp.exception.base.member.MemberException.DuplicateMember;
+import yapp.exception.base.member.MemberException.MemberNotFound;
+import yapp.exception.base.member.MemberException.NickNameDuplicated;
 
 @Slf4j
 @Service
@@ -36,7 +40,9 @@ public class MemberService {
   private final MemberWishTownRepository memberWishTownRepository;
   private final MemberRefreshTokenRepository memberRefreshTokenRepository;
   private final LocationRepository locationRepository;
+  private final TownResidentRepositroy townResidentRepositroy;
   private final MemberConverter memberConverter;
+  private final TownResidentConverter townResidentConverter;
   private final AuthTokenProvider authTokenProvider;
   private final RedisTemplate<String, String> redisTemplate;
 
@@ -45,7 +51,9 @@ public class MemberService {
     MemberWishTownRepository memberWishTownRepository,
     MemberRefreshTokenRepository memberRefreshTokenRepository,
     LocationRepository locationRepository,
+    TownResidentRepositroy townResidentRepositroy,
     MemberConverter memberConverter,
+    TownResidentConverter townResidentConverter,
     AuthTokenProvider authTokenProvider,
     RedisTemplate<String, String> redisTemplate
   ) {
@@ -53,7 +61,9 @@ public class MemberService {
     this.memberWishTownRepository = memberWishTownRepository;
     this.memberRefreshTokenRepository = memberRefreshTokenRepository;
     this.locationRepository = locationRepository;
+    this.townResidentRepositroy = townResidentRepositroy;
     this.memberConverter = memberConverter;
+    this.townResidentConverter = townResidentConverter;
     this.authTokenProvider = authTokenProvider;
     this.redisTemplate = redisTemplate;
   }
@@ -62,12 +72,12 @@ public class MemberService {
     Member member = this.memberRepository.findByMemberIdAndUseStatus(memberId, Const.USE_MEMBERS)
       .orElseThrow(() -> new UsernameNotFoundException("현재 사용중인 회원이 아닙니다"));
 
+    TownResident townResident = this.townResidentRepositroy.findTownResidentByMemberId(
+      memberId).get();
     List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberId(
       memberId).stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
 
-    log.info("회원 ID : {}", member.getMemberId());
-    log.info("찜 목록 조회 : {}", memberWishTownList.size());
-    return memberConverter.toMemberInfo(member, memberWishTownList).get();
+    return memberConverter.toMemberInfo(member, memberWishTownList, townResident).get();
   }
 
   @Transactional
@@ -87,6 +97,17 @@ public class MemberService {
         new MemberWishTown(memberSignUpRequest.getMemberId(), location, YES));
     }
 
+    Long residentObjectId = 0L;
+    String[] residentAdmNm = memberSignUpRequest.getResident().getResidentAddress().split(" ");
+    Optional<Location> residentLocation = this.locationRepository.getLocationByAdmNm(
+      residentAdmNm[residentAdmNm.length - 1]);
+    if (residentLocation.isPresent()) {
+      residentObjectId = residentLocation.get().getObjectId();
+    }
+    TownResident insertTownResident = this.townResidentConverter.toEntity(
+      memberSignUpRequest, residentObjectId);
+
+    this.townResidentRepositroy.save(insertTownResident);
     return this.memberRepository.save(signUpMember).getMemberId();
   }
 
@@ -95,6 +116,42 @@ public class MemberService {
   ) {
     this.memberRepository.findByMemberId(memberId)
       .map(member -> {throw new DuplicateMember("이미 가입된 회원입니다");});
+  }
+
+  @Transactional
+  public void removeMember(
+    String memberId
+  ) {
+    Member member = this.memberRepository.findByMemberId(memberId)
+      .orElseThrow(() -> {throw new MemberNotFound("회원을 찾을 수 없습니다.");});
+    Optional<TownResident> townResident = this.townResidentRepositroy.findTownResidentByMemberId(
+      memberId);
+
+    if (townResident.isPresent()) {
+      townResident.get().removeMemberId();
+      this.townResidentRepositroy.save(townResident.get());
+    }
+
+    this.memberWishTownRepository.deleteMemberWishTownsByMemberId(memberId);
+    this.memberRefreshTokenRepository.deleteByMemberId(memberId);
+    this.memberRepository.delete(member);
+  }
+
+  @Transactional
+  public void editNickname(
+    String memberId,
+    String newNickname
+  ) {
+    Member member = this.memberRepository.findByMemberId(memberId)
+      .orElseThrow(() -> {throw new MemberNotFound("회원을 찾을 수 없습니다.");});
+
+    boolean duplicateNickname = this.checkDuplicateNickname(newNickname);
+    if (duplicateNickname) {
+      throw new NickNameDuplicated("이미 등록된 닉네임 입니다.");
+    }
+
+    member.changeNickname(newNickname);
+    this.memberRepository.save(member);
   }
 
   public int checkRegister(
@@ -143,12 +200,10 @@ public class MemberService {
 
       if (wishTown.getWishStatus().equals(YES)) {
         wishTown.changeWishStatus(NO);
-      }
-      else {
+      } else {
         wishTown.changeWishStatus(YES);
       }
-    }
-    else {
+    } else {
       memberWishTownRepository.save(MemberWishTown.builder()
         .wishStatus(YES)
         .memberId(memberId)

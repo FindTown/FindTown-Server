@@ -12,7 +12,7 @@ import javax.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import yapp.domain.member.entitiy.YN;
+import yapp.domain.member.entity.YN;
 
 @Entity
 @Getter

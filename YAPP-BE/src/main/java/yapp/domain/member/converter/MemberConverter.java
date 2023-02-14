@@ -12,8 +12,10 @@ import yapp.common.domain.Location;
 import yapp.common.oauth.entity.RoleType;
 import yapp.domain.member.dto.request.MemberSignUpRequest;
 import yapp.domain.member.dto.response.MemberInfoResponse;
-import yapp.domain.member.entitiy.Member;
-import yapp.domain.member.entitiy.YN;
+import yapp.domain.member.entity.Member;
+import yapp.domain.member.entity.Resident;
+import yapp.domain.member.entity.YN;
+import yapp.domain.town.entity.TownResident;
 
 @Component
 @RequiredArgsConstructor
@@ -23,13 +25,19 @@ public class MemberConverter {
 
   public Optional<MemberInfoResponse> toMemberInfo(
     Member member,
-    List<Location> locationList
+    List<Location> locationList,
+    TownResident townResident
   ) {
     return Optional.of(MemberInfoResponse.builder()
       .memberId(member.getMemberId())
       .email(member.getEmail())
-      .resident(member.getResident())
       .nickname(member.getNickname())
+      .resident(new Resident(
+        townResident.getResidentAddress(),
+        townResident.getResidentReview(),
+        townResident.getResidentYear(),
+        townResident.getResidentMonth()
+      ))
       .useAgreeYn(member.getUseAgreeYn().getValue())
       .privacyAgreeYn(member.getPrivacyAgreeYn().getValue())
       .providerType(member.getProviderType())
@@ -47,7 +55,6 @@ public class MemberConverter {
           : Const.DEFAULT_EMAIL)
       .nickname(memberSignUpRequest.getNickname())
       .providerType(memberSignUpRequest.getProviderType())
-      .resident(memberSignUpRequest.getResident())
       .useAgreeYn(YN.of(memberSignUpRequest.isUseAgreeYn()))
       .privacyAgreeYn(YN.of(memberSignUpRequest.isPrivacyAgreeYn()))
       .useStatus(Const.USE_MEMBERS)

@@ -1,4 +1,4 @@
-package yapp.domain.member.entitiy;
+package yapp.domain.member.entity;
 
 import java.util.Collection;
 import java.util.Collections;

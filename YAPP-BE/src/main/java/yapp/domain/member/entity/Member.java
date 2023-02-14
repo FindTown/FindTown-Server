@@ -1,7 +1,6 @@
-package yapp.domain.member.entitiy;
+package yapp.domain.member.entity;
 
 import javax.persistence.Column;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -60,9 +59,6 @@ public class Member extends BaseEntity {
   @NotNull
   private RoleType roleType;
 
-  @Embedded
-  private Resident resident;
-
   @Enumerated(EnumType.STRING)
   @Column(name = "use_agree_yn") //이용약관 동의1
   private YN useAgreeYn;
@@ -82,7 +78,7 @@ public class Member extends BaseEntity {
     this.providerType = providerType;
   }
 
-  public void setNickname(String nickname) {
+  public void changeNickname(String nickname) {
     this.nickname = nickname;
   }
 
@@ -108,7 +104,6 @@ public class Member extends BaseEntity {
     String nickname,
     ProviderType providerType,
     RoleType roleType,
-    Resident resident,
     YN useAgreeYn,
     YN privacyAgreeYn,
     int useStatus
@@ -119,7 +114,6 @@ public class Member extends BaseEntity {
     this.password = Const.DEFAULT_PASSWORD;
     this.providerType = providerType;
     this.roleType = roleType;
-    this.resident = resident;
     this.useAgreeYn = useAgreeYn;
     this.privacyAgreeYn = privacyAgreeYn;
     this.useStatus = useStatus;

@@ -1,4 +1,4 @@
-package yapp.domain.member.entitiy;
+package yapp.domain.member.entity;
 
 public enum YN {
 
