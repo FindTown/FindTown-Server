@@ -9,4 +9,6 @@ import yapp.common.domain.Location;
 public interface LocationRepository extends JpaRepository<Location, Long> {
 
   Optional<Location> getLocationByObjectId(Long objectId);
+
+  Optional<Location> getLocationByAdmNm(String admNm);
 }

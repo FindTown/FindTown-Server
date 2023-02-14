@@ -31,7 +31,7 @@ import yapp.common.oauth.repository.OAuth2AuthorizationRequestBasedOnCookieRepos
 import yapp.common.oauth.token.AuthToken;
 import yapp.common.oauth.token.AuthTokenProvider;
 import yapp.common.utils.CookieUtil;
-import yapp.domain.member.entitiy.MemberRefreshToken;
+import yapp.domain.member.entity.MemberRefreshToken;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
 
 @Slf4j

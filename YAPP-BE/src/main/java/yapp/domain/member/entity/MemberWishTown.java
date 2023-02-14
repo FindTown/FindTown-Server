@@ -1,4 +1,4 @@
-package yapp.domain.member.entitiy;
+package yapp.domain.member.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

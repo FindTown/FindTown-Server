@@ -1,4 +1,4 @@
-package yapp.domain.member.entitiy;
+package yapp.domain.member.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Column;

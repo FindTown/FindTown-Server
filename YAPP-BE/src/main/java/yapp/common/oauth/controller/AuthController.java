@@ -30,7 +30,7 @@ import yapp.common.response.ApiResponseHeader;
 import yapp.common.security.CurrentAuthPrincipal;
 import yapp.common.utils.CookieUtil;
 import yapp.domain.member.dto.request.MemberSignInRequest;
-import yapp.domain.member.entitiy.MemberRefreshToken;
+import yapp.domain.member.entity.MemberRefreshToken;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
 import yapp.exception.base.member.MemberException.MemberTokenExpired;
 

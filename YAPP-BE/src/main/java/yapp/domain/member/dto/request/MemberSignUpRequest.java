@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import yapp.common.oauth.entity.ProviderType;
-import yapp.domain.member.entitiy.Resident;
+import yapp.domain.member.entity.Resident;
 
 @Getter
 @Setter
