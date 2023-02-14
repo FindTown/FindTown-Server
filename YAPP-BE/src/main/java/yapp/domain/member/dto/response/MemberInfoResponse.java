@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import yapp.common.domain.Location;
 import yapp.common.oauth.entity.ProviderType;
-import yapp.domain.member.entitiy.Resident;
+import yapp.domain.member.entity.Resident;
 
 @Getter
 @Setter

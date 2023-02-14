@@ -8,8 +8,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -68,6 +70,17 @@ public class MemberController {
     }
   }
 
+  @DeleteMapping("/resign")
+  @PreAuthorize("hasRole('USER')")
+  @Operation(summary = "회원 탈퇴")
+  @Tag(name = "[화면]-마이페이지")
+  public ApiResponse resignMember(
+    @CurrentAuthPrincipal User memberPrincipal
+  ) {
+    this.memberService.removeMember(memberPrincipal.getUsername());
+    return ApiResponse.success("resign_member", true);
+  }
+
   @GetMapping("/check/nickname")
   @Operation(summary = "닉네임 중복 확인")
   @Tag(name = "[화면]-로그인/회원가입")
@@ -78,6 +91,18 @@ public class MemberController {
 
     return duplicateConfirm ? ApiResponse.success("exist_confirm", true)
       : ApiResponse.success("exist_confirm", false);
+  }
+
+  @PutMapping("/edit/nickname")
+  @PreAuthorize("hasRole('USER')")
+  @Operation(summary = "닉네임 수정 요청")
+  @Tag(name = "[화면]-마이페이지")
+  public ApiResponse editNickname(
+    @CurrentAuthPrincipal User memberPrincipal,
+    @RequestParam(name = "nickname") String nickname
+  ) {
+    this.memberService.editNickname(memberPrincipal.getUsername(), nickname);
+    return ApiResponse.success("edit_nickname", true);
   }
 
   @GetMapping("/check/register")
@@ -127,7 +152,7 @@ public class MemberController {
   public ApiResponse setMemberWishTown(
     @CurrentAuthPrincipal User memberPrincipal,
     @RequestParam String object_id
-  ){
+  ) {
     this.memberService.setMemberWishTown(object_id, memberPrincipal.getUsername());
 
     return ApiResponse.success("wishTown", true);

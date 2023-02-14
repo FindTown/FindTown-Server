@@ -3,7 +3,7 @@ package yapp.domain.town.repository;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
 import static yapp.common.domain.QLocation.location;
-import static yapp.domain.member.entitiy.YN.Y;
+import static yapp.domain.member.entity.YN.Y;
 import static yapp.domain.town.entity.QMood.mood;
 import static yapp.domain.town.entity.QSubway.subway;
 import static yapp.domain.town.entity.QTown.town;
