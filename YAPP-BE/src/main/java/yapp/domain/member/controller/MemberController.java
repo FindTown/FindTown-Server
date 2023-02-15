@@ -72,7 +72,7 @@ public class MemberController {
 
   @DeleteMapping("/resign")
   @PreAuthorize("hasRole('USER')")
-  @Operation(summary = "회원 탈퇴")
+  @Operation(summary = "회원탈퇴")
   @Tag(name = "[화면]-마이페이지")
   public ApiResponse resignMember(
     @CurrentAuthPrincipal User memberPrincipal
