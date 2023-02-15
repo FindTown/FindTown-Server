@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yapp.common.config.AppProperties;
 import yapp.common.config.Const;
+import yapp.common.oauth.provider.AuthProvider;
 import yapp.common.oauth.token.AuthToken;
 import yapp.common.oauth.token.AuthTokenProvider;
-import yapp.domain.member.dto.request.MemberSignInRequest;
 import yapp.domain.member.entity.Member;
 import yapp.domain.member.entity.MemberPrincipal;
 import yapp.domain.member.entity.MemberRefreshToken;
@@ -24,7 +24,7 @@ import yapp.exception.base.member.MemberException.MemberNotFound;
 
 @Service
 @Transactional(readOnly = true)
-public class AuthService {
+public class AuthService implements AuthProvider {
 
   private final AppProperties appProperties;
   private final AuthTokenProvider authTokenProvider;
@@ -47,10 +47,11 @@ public class AuthService {
   }
 
   @Transactional
-  public Map<String, String> login(MemberSignInRequest memberSignInRequest) {
+  @Override
+  public Map<String, Object> login(String memberId) {
 
     Member member = this.memberRepository.findByMemberId(
-        memberSignInRequest.getMemberId())
+        memberId)
       .orElseThrow(() -> {throw new MemberNotFound("가입된 회원을 찾을수 없습니다.");});
 
     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
@@ -68,6 +69,7 @@ public class AuthService {
     long refreshTokenExpiry = appProperties.getAuth().getRefreshTokenExpiry();
     long accessTokenExpiry = appProperties.getAuth().getTokenExpiry();
     int cookieMaxAge = (int) refreshTokenExpiry / 60;
+    int cookieMaxAgeForAccess = (int) appProperties.getAuth().getTokenExpiry() / 1000;
 
     AuthToken refreshToken = getRefreshToken(now, refreshTokenExpiry);
 
@@ -77,24 +79,27 @@ public class AuthService {
     extracted(member.getMemberId(), refreshToken, memberRefreshToken);
 
     return getStringStringMap(
-      accessToken, accessTokenExpiry, refreshTokenExpiry, cookieMaxAge, refreshToken);
+      accessToken, accessTokenExpiry, refreshTokenExpiry, cookieMaxAge, cookieMaxAgeForAccess,
+      refreshToken
+    );
   }
 
   @NotNull
-  private static Map<String, String> getStringStringMap(
+  private static Map<String, Object> getStringStringMap(
     AuthToken accessToken,
     long accessTokenExpiry,
     long refreshTokenExpiry,
     int cookieMaxAge,
+    int cookieMaxAgeForAccess,
     AuthToken refreshToken
   ) {
-    Map<String, String> result = new HashMap<>();
-    result.put("access_token_expiry", String.valueOf(accessTokenExpiry));
-    result.put("refresh_token_expiry", String.valueOf(refreshTokenExpiry));
-    result.put("register_check", String.valueOf(Const.USE_MEMBERS));
+    Map<String, Object> result = new HashMap<>();
+    result.put("access_token_expiry", accessTokenExpiry);
+    result.put("refresh_token_expiry", refreshTokenExpiry);
     result.put("access_token", accessToken.getToken());
     result.put("refresh_token", refreshToken.getToken());
-    result.put("cookie_max_age", String.valueOf(cookieMaxAge));
+    result.put("cookie_max_age", cookieMaxAge);
+    result.put("cookie_max_age_for_access", cookieMaxAgeForAccess);
     return result;
   }
 

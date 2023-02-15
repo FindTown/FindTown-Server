@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yapp.common.config.AppProperties;
-import yapp.common.config.Const;
 import yapp.common.oauth.entity.RoleType;
 import yapp.common.oauth.service.AuthService;
 import yapp.common.oauth.token.AuthToken;
@@ -67,31 +66,21 @@ public class AuthController {
     HttpServletResponse response,
     @RequestBody MemberSignInRequest memberSignInRequest
   ) {
-    Map<String, Object> result = new HashMap<>();
-    Map<String, String> loginData = authService.login(memberSignInRequest);
-    int registerCheck = Integer.parseInt(loginData.get("register_check"));
-    result.put("register_check", registerCheck);
+    Map<String, Object> result = authService.login(memberSignInRequest.getMemberId());
+    
+    // access_token 담기
+    CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
+    CookieUtil.addCookieForAccess(
+      response, ACCESS_TOKEN, String.valueOf(result.get("access_token")),
+      (Integer) result.get("cookie_max_age_for_access")
+    );
 
-    if (registerCheck == Const.USE_MEMBERS) {
-      long accessTokenExpiry = Long.parseLong(loginData.get("access_token_expiry"));
-      long refreshTokenExpiry = Long.parseLong(loginData.get("refresh_token_expiry"));
-      int cookieMaxAge = (int) refreshTokenExpiry / 60;
-      int cookieMaxAgeForAccess = (int) appProperties.getAuth().getTokenExpiry() / 1000;
-
-      // access_token 담기
-      CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
-      CookieUtil.addCookieForAccess(
-        response, ACCESS_TOKEN, loginData.get("access_token"), cookieMaxAgeForAccess);
-
-      // refresh_token 담기
-      CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
-      CookieUtil.addCookie(response, REFRESH_TOKEN, loginData.get("refresh_token"), cookieMaxAge);
-
-      result.put("access_token", loginData.get("access_token"));
-      result.put("access_token_expiry", accessTokenExpiry);
-      result.put("refresh_token", loginData.get("refresh_token"));
-      result.put("refresh_token_expiry", refreshTokenExpiry);
-    }
+    // refresh_token 담기
+    CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
+    CookieUtil.addCookie(
+      response, REFRESH_TOKEN, String.valueOf(result.get("refresh_token")),
+      (Integer) result.get("cookie_max_age")
+    );
     return new ApiResponse(new ApiResponseHeader(200, "회원 계정입니다."), result);
   }
 
