@@ -1,31 +1,35 @@
-package yapp.domain.townMap.dto.response;
+package yapp.domain.townMap.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AccessLevel;
-import lombok.Builder;
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import yapp.domain.townMap.entity.Place;
+import lombok.Setter;
+import yapp.domain.townMap.entity.Infra;
 
-@Schema(description = "인프라 장소 정보")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 public class InfraPlaceDto {
 
-  @Schema(description = "장소 이름")
   private String name;
-
-  @Schema(description = "장소 x 좌표")
+  private String address;
   private Double x;
-
-  @Schema(description = "장소 y 좌표")
   private Double y;
+  private Infra infra;
 
-  @Builder
-  public InfraPlaceDto(Place place){
-    this.name = place.getName();
-    this.x = place.getX();
-    this.y = place.getY();
+  @QueryProjection
+  public InfraPlaceDto(
+    String name,
+    String address,
+    Double x,
+    Double y,
+    Infra infra
+  ){
+    this.name = name;
+    this.address = address;
+    this.x = x;
+    this.y = y;
+    this.infra = infra;
   }
   
 }
