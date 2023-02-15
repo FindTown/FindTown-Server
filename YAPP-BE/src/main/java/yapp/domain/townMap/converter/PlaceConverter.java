@@ -5,13 +5,28 @@ import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import yapp.domain.townMap.dto.InfraPlaceDto;
 import yapp.domain.townMap.dto.ThemePlaceDto;
+import yapp.domain.townMap.dto.response.InfraPlaceResponse;
 import yapp.domain.townMap.dto.response.ThemePlaceResponse;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class PlaceConverter {
+
+  public InfraPlaceResponse toInfraPlace(
+    InfraPlaceDto infraPlaceDto
+  ) {
+
+    return InfraPlaceResponse.builder()
+      .name(infraPlaceDto.getName())
+      .address(infraPlaceDto.getAddress())
+      .x(infraPlaceDto.getX())
+      .y(infraPlaceDto.getY())
+      .subCategory((infraPlaceDto.getInfra().getSubCategoryName()))
+      .build();
+  }
 
   public ThemePlaceResponse toThemePlace(
     ThemePlaceDto themePlaceDto
