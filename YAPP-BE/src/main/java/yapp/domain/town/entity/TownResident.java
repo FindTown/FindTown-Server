@@ -64,4 +64,9 @@ public class TownResident extends BaseEntity {
     this.residentYear = residentYear;
     this.residentMonth = residentMonth;
   }
+
+  public static TownResident EmptyResident() {
+    return new TownResident(0L, 0L, "", "", "", 0, 0);
+  }
+
 }

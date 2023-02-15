@@ -4,7 +4,6 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import yapp.common.domain.Location;
 import yapp.common.oauth.entity.ProviderType;
 import yapp.domain.member.entity.Resident;
 
@@ -19,5 +18,6 @@ public class MemberInfoResponse {
   private Resident resident;
   private boolean useAgreeYn;
   private boolean privacyAgreeYn;
-  private List<Location> locationList;
+  private List<LocationInfo> locationList;
 }
+
