@@ -3,6 +3,8 @@ package yapp.domain.townMap.repository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import yapp.domain.townMap.dto.QThemePlaceDto;
+import yapp.domain.townMap.dto.ThemePlaceDto;
 import yapp.domain.townMap.entity.Place;
 
 import static yapp.domain.townMap.entity.QPlace.place;
@@ -26,13 +28,22 @@ public class PlaceRepositoryImpl implements PlaceRepositoryCustom {
   }
 
   @Override
-  public List<Place> findByTheme(Long object_id, String category, String subCategory) {
-    return queryFactory.selectFrom(place)
+  public List<ThemePlaceDto> findByTheme(Long object_id, String category) {
+    return queryFactory
+      .select(
+        new QThemePlaceDto(
+          place.name,
+          place.address,
+          place.x,
+          place.y,
+          theme
+        )
+      )
+      .from(place)
       .innerJoin(place.theme, theme)
       .where(
         place.objectId.eq(object_id),
-        theme.category.eq(category),
-        theme.subCategory.eq(subCategory))
+        theme.category.eq(category))
       .fetch();
   }
 
