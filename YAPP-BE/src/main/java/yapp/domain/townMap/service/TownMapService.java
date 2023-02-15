@@ -18,6 +18,7 @@ import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.townMap.converter.LocationConverter;
 import yapp.domain.townMap.converter.PlaceConverter;
 import yapp.domain.townMap.dto.InfraPlaceDto;
+import yapp.domain.townMap.dto.response.InfraPlaceResponse;
 import yapp.domain.townMap.dto.response.LocationInfoResponse;
 import yapp.domain.townMap.dto.ThemePlaceDto;
 import yapp.domain.townMap.dto.response.ThemePlaceResponse;
@@ -71,25 +72,19 @@ public class TownMapService {
     return locationConverter.toLocationInfo(location).get();
   }
 
-  public HashMap<String, Object> getInfraPlaceInfo(
+  public HashMap<String, List<InfraPlaceResponse>> getInfraPlaceInfo(
     Long object_id,
     String category
   ) {
 
-    HashMap<String, Object> infraPlaceListHashMap = new HashMap<>();
+    HashMap<String, List<InfraPlaceResponse>> infraPlaceListHashMap = new HashMap<>();
 
-    List<Infra> infraList = infraRepository.findInfraByCategory(category);
+    List<InfraPlaceResponse> infraPlaceList = placeRepository.findByInfra(object_id, category)
+      .stream()
+      .map(placeConverter::toInfraPlace)
+      .collect(Collectors.toList());
 
-    for (int i = 0; i < infraList.size(); i++) {
-      List<InfraPlaceDto> infraPlaceList = placeRepository.findByInfra(
-          object_id, category, infraList.get(i).getSubCategory())
-        .stream()
-        .map(InfraPlaceDto::new)
-        .collect(Collectors.toList());
-      ;
-
-      infraPlaceListHashMap.put(infraList.get(i).getSubCategoryName(), infraPlaceList);
-    }
+    infraPlaceListHashMap.put("placeList", infraPlaceList);
 
     return infraPlaceListHashMap;
   }
