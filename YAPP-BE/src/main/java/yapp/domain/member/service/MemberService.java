@@ -4,6 +4,7 @@ import static yapp.domain.member.entity.WishStatus.NO;
 import static yapp.domain.member.entity.WishStatus.YES;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yapp.common.config.Const;
 import yapp.common.domain.Location;
+import yapp.common.oauth.provider.AuthProvider;
 import yapp.common.oauth.token.AuthTokenProvider;
 import yapp.common.repository.LocationRepository;
 import yapp.domain.member.converter.MemberConverter;
@@ -30,12 +32,14 @@ import yapp.domain.town.entity.TownResident;
 import yapp.domain.town.repository.TownResidentRepositroy;
 import yapp.exception.base.member.MemberException.DuplicateMember;
 import yapp.exception.base.member.MemberException.MemberNotFound;
+import yapp.exception.base.member.MemberException.MemberSignUpFail;
 import yapp.exception.base.member.MemberException.NickNameDuplicated;
 
 @Slf4j
 @Service
 @Transactional(readOnly = true)
 public class MemberService {
+  private final AuthProvider authProvider;
   private final MemberRepository memberRepository;
   private final MemberWishTownRepository memberWishTownRepository;
   private final MemberRefreshTokenRepository memberRefreshTokenRepository;
@@ -47,6 +51,7 @@ public class MemberService {
   private final RedisTemplate<String, String> redisTemplate;
 
   public MemberService(
+    AuthProvider authProvider,
     MemberRepository memberRepository,
     MemberWishTownRepository memberWishTownRepository,
     MemberRefreshTokenRepository memberRefreshTokenRepository,
@@ -57,6 +62,7 @@ public class MemberService {
     AuthTokenProvider authTokenProvider,
     RedisTemplate<String, String> redisTemplate
   ) {
+    this.authProvider = authProvider;
     this.memberRepository = memberRepository;
     this.memberWishTownRepository = memberWishTownRepository;
     this.memberRefreshTokenRepository = memberRefreshTokenRepository;
@@ -73,15 +79,16 @@ public class MemberService {
       .orElseThrow(() -> new UsernameNotFoundException("현재 사용중인 회원이 아닙니다"));
 
     TownResident townResident = this.townResidentRepositroy.findTownResidentByMemberId(
-      memberId).get();
+      memberId).orElse(TownResident.EmptyResident());
     List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberId(
       memberId).stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
 
-    return memberConverter.toMemberInfo(member, memberWishTownList, townResident).get();
+    return memberConverter.toMemberInfo(
+      member, memberWishTownList, townResident);
   }
 
   @Transactional
-  public String memberSignUp(
+  public Map<String, Object> memberSignUp(
     MemberSignUpRequest memberSignUpRequest
   ) {
     //회원 체크
@@ -107,8 +114,15 @@ public class MemberService {
     TownResident insertTownResident = this.townResidentConverter.toEntity(
       memberSignUpRequest, residentObjectId);
 
+    String memberId;
     this.townResidentRepositroy.save(insertTownResident);
-    return this.memberRepository.save(signUpMember).getMemberId();
+    try {
+      memberId = this.memberRepository.save(signUpMember).getMemberId();
+    } catch (Exception e) {
+      throw new MemberSignUpFail("회원 가입에 실패하셨습니다.");
+    }
+
+    return authProvider.login(memberId);
   }
 
   public void duplicateMemberConfirm(
