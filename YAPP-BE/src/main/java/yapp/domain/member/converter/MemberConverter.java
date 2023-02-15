@@ -1,7 +1,7 @@
 package yapp.domain.member.converter;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,6 +11,7 @@ import yapp.common.config.Const;
 import yapp.common.domain.Location;
 import yapp.common.oauth.entity.RoleType;
 import yapp.domain.member.dto.request.MemberSignUpRequest;
+import yapp.domain.member.dto.response.LocationInfo;
 import yapp.domain.member.dto.response.MemberInfoResponse;
 import yapp.domain.member.entity.Member;
 import yapp.domain.member.entity.Resident;
@@ -23,12 +24,12 @@ public class MemberConverter {
 
   private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-  public Optional<MemberInfoResponse> toMemberInfo(
+  public MemberInfoResponse toMemberInfo(
     Member member,
     List<Location> locationList,
     TownResident townResident
   ) {
-    return Optional.of(MemberInfoResponse.builder()
+    return MemberInfoResponse.builder()
       .memberId(member.getMemberId())
       .email(member.getEmail())
       .nickname(member.getNickname())
@@ -41,8 +42,16 @@ public class MemberConverter {
       .useAgreeYn(member.getUseAgreeYn().getValue())
       .privacyAgreeYn(member.getPrivacyAgreeYn().getValue())
       .providerType(member.getProviderType())
-      .locationList(locationList)
-      .build());
+      .locationList(locationList
+        .stream()
+        .map(location -> {
+          return new LocationInfo(location.getObjectId(), location.getSidoNm(), location.getSggNm(),
+            location.getAdmNm()
+          );
+        })
+        .collect(Collectors.toList())
+      )
+      .build();
   }
 
   public Member toEntity(

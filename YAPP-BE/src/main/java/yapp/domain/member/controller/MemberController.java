@@ -1,13 +1,16 @@
 package yapp.domain.member.controller;
 
+import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.ACCESS_TOKEN;
+import static yapp.common.oauth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository.REFRESH_TOKEN;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,11 +25,11 @@ import yapp.common.oauth.token.AuthTokenProvider;
 import yapp.common.response.ApiResponse;
 import yapp.common.response.ApiResponseHeader;
 import yapp.common.security.CurrentAuthPrincipal;
+import yapp.common.utils.CookieUtil;
 import yapp.common.utils.HeaderUtil;
 import yapp.domain.member.dto.request.MemberSignUpRequest;
 import yapp.domain.member.dto.response.MemberInfoResponse;
 import yapp.domain.member.service.MemberService;
-import yapp.exception.base.member.MemberException.MemberSignUpFail;
 
 @RestController
 @RequestMapping("/app/members")
@@ -59,15 +62,27 @@ public class MemberController {
   @Operation(summary = "회원가입")
   @Tag(name = "[화면]-로그인/회원가입")
   public ApiResponse socialSignUp(
+    HttpServletRequest request,
+    HttpServletResponse response,
     @RequestBody MemberSignUpRequest memberSignUpRequest
   ) {
-    String memberId = this.memberService.memberSignUp(memberSignUpRequest);
+    Map<String, Object> result = this.memberService.memberSignUp(memberSignUpRequest);
 
-    if (StringUtils.hasText(memberId)) {
-      return ApiResponse.success("signup", true);
-    } else {
-      throw new MemberSignUpFail("회원 가입에 실패하셨습니다.");
-    }
+    // access_token 담기
+    CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
+    CookieUtil.addCookieForAccess(
+      response, ACCESS_TOKEN, String.valueOf(result.get("access_token")),
+      (Integer) result.get("cookie_max_age_for_access")
+    );
+
+    // refresh_token 담기
+    CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
+    CookieUtil.addCookie(
+      response, REFRESH_TOKEN, String.valueOf(result.get("refresh_token")),
+      (Integer) result.get("cookie_max_age")
+    );
+
+    return new ApiResponse(new ApiResponseHeader(200, "회원가입에 성공하였습니다."), result);
   }
 
   @DeleteMapping("/resign")
