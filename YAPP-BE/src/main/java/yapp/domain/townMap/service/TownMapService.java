@@ -34,8 +34,6 @@ public class TownMapService {
 
   private final LocationRepository locationRepository;
   private final MemberWishTownRepository memberWishTownRepository;
-  private final InfraRepository infraRepository;
-  private final ThemeRepository themeRepository;
   private final PlaceRepository placeRepository;
   private final LocationConverter locationConverter;
   private final PlaceConverter placeConverter;
@@ -49,23 +47,26 @@ public class TownMapService {
 
     if (!objectId.isEmpty()) {
 
-      log.info("도달2-in");
       location = this.locationRepository.getLocationByObjectId(
           Long.valueOf(objectId.get()))
         .orElseThrow();
 
-      log.info("도달2-out");
-    } else {
-      if (memberId.equals(NON_USER)) {
-        location = this.locationRepository.getLocationByObjectId(365L)
-          .orElseThrow();
-      } else {
+    }
+    else {
+      try {
+
         List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberId(
             memberId)
           .stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
 
         Collections.shuffle(memberWishTownList);
         location = memberWishTownList.get(0);
+
+      } catch (Exception e) {
+
+        location = this.locationRepository.getLocationByObjectId(365L)
+          .orElseThrow();
+
       }
     }
 
