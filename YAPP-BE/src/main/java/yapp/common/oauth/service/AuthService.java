@@ -3,7 +3,9 @@ package yapp.common.oauth.service;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,6 +30,7 @@ public class AuthService implements AuthProvider {
 
   private final AppProperties appProperties;
   private final AuthTokenProvider authTokenProvider;
+  private final RedisTemplate redisTemplate;
   private final MemberRepository memberRepository;
   private final AuthenticationManager authenticationManager;
   private final MemberRefreshTokenRepository memberRefreshTokenRepository;
@@ -35,12 +38,14 @@ public class AuthService implements AuthProvider {
   public AuthService(
     AppProperties appProperties,
     AuthTokenProvider authTokenProvider,
+    RedisTemplate redisTemplate,
     MemberRepository memberRepository,
     AuthenticationManager authenticationManager,
     MemberRefreshTokenRepository memberRefreshTokenRepository
   ) {
     this.appProperties = appProperties;
     this.authTokenProvider = authTokenProvider;
+    this.redisTemplate = redisTemplate;
     this.memberRepository = memberRepository;
     this.authenticationManager = authenticationManager;
     this.memberRefreshTokenRepository = memberRefreshTokenRepository;
@@ -82,6 +87,15 @@ public class AuthService implements AuthProvider {
       accessToken, accessTokenExpiry, refreshTokenExpiry, cookieMaxAge, cookieMaxAgeForAccess,
       refreshToken
     );
+  }
+
+  public void confirmMember(
+    String accessToken
+  ) {
+    String isStatus = (String) redisTemplate.opsForValue().get(accessToken);
+    if (!ObjectUtils.isEmpty(isStatus) && isStatus.equals("account_withdrawal")) {
+      throw new MemberNotFound("해당 회원 아이디는 현재 탈퇴한 계정입니다.");
+    }
   }
 
   @NotNull

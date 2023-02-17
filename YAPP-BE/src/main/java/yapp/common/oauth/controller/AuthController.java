@@ -12,7 +12,6 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +27,7 @@ import yapp.common.response.ApiResponse;
 import yapp.common.response.ApiResponseHeader;
 import yapp.common.security.CurrentAuthPrincipal;
 import yapp.common.utils.CookieUtil;
+import yapp.common.utils.HeaderUtil;
 import yapp.domain.member.dto.request.MemberSignInRequest;
 import yapp.domain.member.entity.MemberRefreshToken;
 import yapp.domain.member.repository.MemberRefreshTokenRepository;
@@ -41,20 +41,17 @@ public class AuthController {
   private final AuthService authService;
   private final AppProperties appProperties;
   private final AuthTokenProvider authTokenProvider;
-  private final RedisTemplate redisTemplate;
   private final MemberRefreshTokenRepository memberRefreshTokenRepository;
 
   public AuthController(
     AuthService authService,
     AppProperties appProperties,
     AuthTokenProvider authTokenProvider,
-    RedisTemplate redisTemplate,
     MemberRefreshTokenRepository memberRefreshTokenRepository
   ) {
     this.authService = authService;
     this.appProperties = appProperties;
     this.authTokenProvider = authTokenProvider;
-    this.redisTemplate = redisTemplate;
     this.memberRefreshTokenRepository = memberRefreshTokenRepository;
   }
 
@@ -67,7 +64,7 @@ public class AuthController {
     @RequestBody MemberSignInRequest memberSignInRequest
   ) {
     Map<String, Object> result = authService.login(memberSignInRequest.getMemberId());
-    
+
     // access_token 담기
     CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
     CookieUtil.addCookieForAccess(
@@ -88,13 +85,15 @@ public class AuthController {
   @Operation(summary = "access_token으로 회원 ID , 권한 정보 확인")
   @Tag(name = "[권한/인증]")
   public ApiResponse checkLoginConfirm(
+    HttpServletRequest request,
     @CurrentAuthPrincipal User memberPrincipal
   ) {
     Map<String, Object> result = new HashMap<>();
-    result.put("회원 id", memberPrincipal.getUsername());
-    result.put("회원 권한 정보", memberPrincipal.getAuthorities());
+    this.authService.confirmMember(HeaderUtil.getAccessToken(request));
+    result.put("memberId", memberPrincipal.getUsername());
+    result.put("authorities", memberPrincipal.getAuthorities());
 
-    return ApiResponse.success("", result);
+    return ApiResponse.success("login_confirm", result);
   }
 
   @PostMapping("/reissue/token")
