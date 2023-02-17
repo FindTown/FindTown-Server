@@ -15,7 +15,7 @@ import yapp.domain.town.entity.TownPopular;
 public class TownDetailDto {
 
   private Long objectId;
-  private String townExplanation;
+  private String townDescribe;
   private String reliefYn;
   private List<Subway> townSubwayList;
   private List<Mood> townMoodList;
@@ -29,7 +29,7 @@ public class TownDetailDto {
 
   public TownDetailDto(
     Long objectId,
-    String townExplanation,
+    String townDescribe,
     String reliefYn,
     List<Subway> townSubwayList,
     List<Mood> townMoodList,
@@ -42,7 +42,7 @@ public class TownDetailDto {
     String cleanlinessRank
   ) {
     this.objectId = objectId;
-    this.townExplanation = townExplanation;
+    this.townDescribe = townDescribe;
     this.reliefYn = reliefYn;
     this.townSubwayList = townSubwayList;
     this.townMoodList = townMoodList;
