@@ -14,7 +14,7 @@ public interface TownCustomRepository {
   );
 
   List<Town> getTownSearchList(
-    String sggnm
+    String sggNm
   );
 
   List<TownDetailDto> getTownDetailInfo(

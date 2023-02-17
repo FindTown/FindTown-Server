@@ -56,13 +56,13 @@ public class TownController {
     return ApiResponse.success("town_filter", townFilterResponse);
   }
 
-  @GetMapping("/search")
+  @PostMapping("/search")
   @Operation(summary = "동네 검색 (구)")
   @Tag(name = "[화면]-동네 찾기")
   public ApiResponse getTownSearch(
     @CurrentAuthPrincipal User memberPrincipal,
     @RequestBody TownSearchRequest townSearchRequest
-  ){
+  ) {
 
     List<TownSearchResponse> townSearchResponse = townService.getTownSearch((
       memberPrincipal == null ? Optional.empty()
