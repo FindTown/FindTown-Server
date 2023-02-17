@@ -1,7 +1,5 @@
 package yapp.domain.townMap.controller;
 
-import static yapp.common.config.Const.NON_USER;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Optional;
@@ -34,16 +32,10 @@ public class TownMapController {
     @RequestParam(value = "id", required = false) Optional<String> objectId
   ){
 
-    String memberId;
-
-    try {
-      memberId = memberPrincipal.getUsername();
-    } catch(NullPointerException e){
-      memberId = NON_USER;
-    }
-
     LocationInfoResponse locationinfoResponse = this.townMapService.getLocationInfo(
-      memberId, objectId);
+      (
+        memberPrincipal == null ? Optional.empty()
+          : Optional.ofNullable(memberPrincipal.getUsername())), objectId);
 
     return ApiResponse.success("location-info", locationinfoResponse);
   }

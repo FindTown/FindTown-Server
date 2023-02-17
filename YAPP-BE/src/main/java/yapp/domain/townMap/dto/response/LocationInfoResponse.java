@@ -10,5 +10,6 @@ import lombok.Setter;
 public class LocationInfoResponse {
   private Long object_id;
   private String adm_nm;
+  private Boolean wishStatus;
   private Double[][] coordinates;
 }
