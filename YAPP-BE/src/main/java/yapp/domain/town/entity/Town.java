@@ -55,4 +55,7 @@ public class Town implements Serializable {
   @Column(name = "traffic_rate", columnDefinition = "TINYINT")
   private int trafficRate;
 
+  public void changeTownDescribe(String townDescribe) {
+    this.townDescribe = townDescribe;
+  }
 }
