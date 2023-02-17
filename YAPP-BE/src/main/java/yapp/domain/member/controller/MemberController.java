@@ -179,9 +179,8 @@ public class MemberController {
     @CurrentAuthPrincipal User memberPrincipal,
     @RequestParam String object_id
   ) {
-    this.memberService.setMemberWishTown(object_id, memberPrincipal.getUsername());
 
-    return ApiResponse.success("wishTown", true);
+    return ApiResponse.success("wishTown", this.memberService.setMemberWishTown(object_id, memberPrincipal.getUsername()));
   }
 
 

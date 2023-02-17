@@ -225,30 +225,34 @@ public class MemberService {
   }
 
   @Transactional
-  public void setMemberWishTown(
+  public String setMemberWishTown(
     String objectId,
     String memberId
   ) {
     Location location = this.locationRepository.getLocationByObjectId(Long.valueOf(objectId))
       .orElseThrow();
+    
+    String msg = "찜 등록";
 
-    MemberWishTown wishTown = this.memberWishTownRepository.getMemberWishTownByMemberIdAndLocation(
-      memberId, location).orElseThrow();
-
-    if (wishTown != null) {
+    try{
+      MemberWishTown wishTown = this.memberWishTownRepository.getMemberWishTownByMemberIdAndLocation(
+        memberId, location).orElseThrow();
 
       if (wishTown.getWishStatus().equals(YES)) {
         wishTown.changeWishStatus(NO);
+        msg = "찜 해제";
       } else {
         wishTown.changeWishStatus(YES);
       }
-    } else {
+    } catch (Exception e){
       memberWishTownRepository.save(MemberWishTown.builder()
         .wishStatus(YES)
         .memberId(memberId)
         .location(location)
         .build());
     }
+
+    return msg;
   }
 
 }
