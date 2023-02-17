@@ -35,9 +35,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     AuthToken token = tokenProvider.convertAuthToken(tokenStr);
 
     if (StringUtils.hasText(tokenStr) && token.validate()) {
-      String isLogout = (String) redisTemplate.opsForValue().get(tokenStr);
+      String isStatus = (String) redisTemplate.opsForValue().get(tokenStr);
 
-      if (ObjectUtils.isEmpty(isLogout)) {
+      if (ObjectUtils.isEmpty(isStatus)) {
         Authentication authentication = tokenProvider.getAuthentication(token);
         SecurityContextHolder.getContext().setAuthentication(authentication);
       }

@@ -27,25 +27,29 @@ public class MemberConverter {
   public MemberInfoResponse toMemberInfo(
     Member member,
     List<Location> locationList,
-    TownResident townResident
+    List<TownResident> townResidentList
   ) {
     return MemberInfoResponse.builder()
       .memberId(member.getMemberId())
       .email(member.getEmail())
       .nickname(member.getNickname())
-      .resident(new Resident(
-        townResident.getResidentAddress(),
-        townResident.getResidentReview(),
-        townResident.getResidentYear(),
-        townResident.getResidentMonth()
-      ))
+      .resident(
+        townResidentList.stream().map(townResident ->
+          new Resident(
+            townResident.getResidentAddress(),
+            townResident.getResidentReview(),
+            townResident.getResidentYear(),
+            townResident.getResidentMonth()
+          )
+        ).collect(Collectors.toList()))
       .useAgreeYn(member.getUseAgreeYn().getValue())
       .privacyAgreeYn(member.getPrivacyAgreeYn().getValue())
       .providerType(member.getProviderType())
       .locationList(locationList
         .stream()
         .map(location -> {
-          return new LocationInfo(location.getObjectId(), location.getSidoNm(), location.getSggNm(),
+          return new LocationInfo(location.getObjectId(), location.getSidoNm(),
+            location.getSggNm(),
             location.getAdmNm()
           );
         })

@@ -90,9 +90,11 @@ public class MemberController {
   @Operation(summary = "회원탈퇴")
   @Tag(name = "[화면]-마이페이지")
   public ApiResponse resignMember(
+    HttpServletRequest request,
     @CurrentAuthPrincipal User memberPrincipal
   ) {
-    this.memberService.removeMember(memberPrincipal.getUsername());
+    this.memberService.removeMember(
+      memberPrincipal.getUsername(), HeaderUtil.getAccessToken(request));
     return ApiResponse.success("resign_member", true);
   }
 
