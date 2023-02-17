@@ -20,4 +20,8 @@ public interface TownCustomRepository {
   List<TownDetailDto> getTownDetailInfo(
     Long objectId
   );
+
+  List<Town> getMemberWishTownList(
+    String memberId
+  );
 }
