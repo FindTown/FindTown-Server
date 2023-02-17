@@ -11,7 +11,7 @@ public interface MemberWishTownRepository extends JpaRepository<MemberWishTown, 
 
   List<MemberWishTown> getMemberWishTownsByMemberId(String memberId);
 
-  List<MemberWishTown> getMemberWishTownsByMemberIdAAndWishStatus(
+  List<MemberWishTown> getMemberWishTownsByMemberIdAndWishStatus(
     String memberId,
     WishStatus wishStatus
   );
@@ -21,7 +21,7 @@ public interface MemberWishTownRepository extends JpaRepository<MemberWishTown, 
     Location location
   );
 
-  Optional<MemberWishTown> getMemberWishTownByMemberIdAndLocationAAndWishStatus(
+  Optional<MemberWishTown> getMemberWishTownByMemberIdAndLocationAndWishStatus(
     String memberId,
     Location location,
     WishStatus wishStatus

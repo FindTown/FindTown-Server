@@ -46,16 +46,15 @@ public class TownMapService {
           Long.valueOf(objectId.get()))
         .orElseThrow();
 
-      if (memberId.isPresent()){
-        wishStatus = this.memberWishTownRepository.getMemberWishTownByMemberIdAndLocationAAndWishStatus(
+      if (memberId.isPresent()) {
+        wishStatus = this.memberWishTownRepository.getMemberWishTownByMemberIdAndLocationAndWishStatus(
           memberId.get(), location, YES).isPresent();
       }
 
-    }
-    else {
+    } else {
       try {
 
-        List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberIdAAndWishStatus(
+        List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberIdAndWishStatus(
             memberId.get(), YES)
           .stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
 
