@@ -7,18 +7,18 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import yapp.common.response.ApiResponse;
 import yapp.common.security.CurrentAuthPrincipal;
 import yapp.domain.town.dto.request.TownFilterRequest;
 import yapp.domain.town.dto.request.TownSearchRequest;
 import yapp.domain.town.dto.response.TownFilterResponse;
-import yapp.domain.town.dto.response.TownSearchResponse;
 import yapp.domain.town.dto.response.TownInfoResponse;
+import yapp.domain.town.dto.response.TownSearchResponse;
 import yapp.domain.town.service.TownService;
 
 @Slf4j
@@ -30,13 +30,6 @@ public class TownController {
 
   public TownController(TownService townService) {
     this.townService = townService;
-  }
-
-  // 동네 소개 조회 API
-  @GetMapping("/info")
-  public ApiResponse getTownInfo() {
-
-    return ApiResponse.success("", null);
   }
 
   @PostMapping("/filter")
@@ -56,13 +49,13 @@ public class TownController {
     return ApiResponse.success("town_filter", townFilterResponse);
   }
 
-  @GetMapping("/search")
+  @PostMapping("/search")
   @Operation(summary = "동네 검색 (구)")
   @Tag(name = "[화면]-동네 찾기")
   public ApiResponse getTownSearch(
     @CurrentAuthPrincipal User memberPrincipal,
     @RequestBody TownSearchRequest townSearchRequest
-  ){
+  ) {
 
     List<TownSearchResponse> townSearchResponse = townService.getTownSearch((
       memberPrincipal == null ? Optional.empty()
@@ -70,12 +63,12 @@ public class TownController {
     return ApiResponse.success("town_search", townSearchResponse);
   }
 
-  @GetMapping("/introduce/{objectId}")
+  @GetMapping("/introduce")
   @Operation(summary = "동네 소개 정보")
   @Tag(name = "[화면]-동네 소개")
   public ApiResponse getTownDetailInfo(
     @CurrentAuthPrincipal User memberPrincipal,
-    @PathVariable(name = "objectId") Long objectId
+    @RequestParam(value = "objectId", required = true) Long objectId
   ) {
     TownInfoResponse townInfoResponse = this.townService.getTownDetailInfo(
       memberPrincipal == null ? Optional.empty()

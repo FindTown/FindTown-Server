@@ -107,7 +107,7 @@ public class TownCustomRepositoryImpl implements
           Projections.fields(
             TownDetailDto.class,
             town.objectId,
-            town.townIntroduction,
+            town.townDescribe,
             town.reliefYn,
             list(
               Projections.fields(

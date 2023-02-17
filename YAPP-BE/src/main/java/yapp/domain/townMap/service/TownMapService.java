@@ -1,11 +1,10 @@
 package yapp.domain.townMap.service;
 
-import static yapp.common.config.Const.NON_USER;
+import static yapp.domain.member.entity.WishStatus.YES;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +16,10 @@ import yapp.domain.member.entity.MemberWishTown;
 import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.townMap.converter.LocationConverter;
 import yapp.domain.townMap.converter.PlaceConverter;
-import yapp.domain.townMap.dto.InfraPlaceDto;
 import yapp.domain.townMap.dto.response.InfraPlaceResponse;
 import yapp.domain.townMap.dto.response.LocationInfoResponse;
-import yapp.domain.townMap.dto.ThemePlaceDto;
 import yapp.domain.townMap.dto.response.ThemePlaceResponse;
-import yapp.domain.townMap.entity.Infra;
-import yapp.domain.townMap.repository.InfraRepository;
 import yapp.domain.townMap.repository.PlaceRepository;
-import yapp.domain.townMap.repository.ThemeRepository;
 
 @Service
 @Slf4j
@@ -39,11 +33,12 @@ public class TownMapService {
   private final PlaceConverter placeConverter;
 
   public LocationInfoResponse getLocationInfo(
-    String memberId,
+    Optional<String> memberId,
     Optional<String> objectId
   ) {
 
     Location location;
+    Boolean wishStatus = false;
 
     if (!objectId.isEmpty()) {
 
@@ -51,16 +46,22 @@ public class TownMapService {
           Long.valueOf(objectId.get()))
         .orElseThrow();
 
-    }
-    else {
+      if (memberId.isPresent()) {
+        wishStatus = this.memberWishTownRepository.getMemberWishTownByMemberIdAndLocationAndWishStatus(
+          memberId.get(), location, YES).isPresent();
+      }
+
+    } else {
       try {
 
-        List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberId(
-            memberId)
+        List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberIdAndWishStatus(
+            memberId.get(), YES)
           .stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
 
         Collections.shuffle(memberWishTownList);
         location = memberWishTownList.get(0);
+
+        wishStatus = true;
 
       } catch (Exception e) {
 
@@ -70,7 +71,7 @@ public class TownMapService {
       }
     }
 
-    return locationConverter.toLocationInfo(location).get();
+    return locationConverter.toLocationInfo(location, wishStatus).get();
   }
 
   public HashMap<String, List<InfraPlaceResponse>> getInfraPlaceInfo(

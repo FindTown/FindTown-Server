@@ -15,7 +15,7 @@ public class MemberInfoResponse {
   private String email;
   private String nickname;
   private ProviderType providerType;
-  private Resident resident;
+  private List<Resident> resident;
   private boolean useAgreeYn;
   private boolean privacyAgreeYn;
   private List<LocationInfo> locationList;

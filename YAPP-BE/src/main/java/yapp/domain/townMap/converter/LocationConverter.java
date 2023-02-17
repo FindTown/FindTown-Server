@@ -12,7 +12,8 @@ import yapp.domain.townMap.dto.response.LocationInfoResponse;
 public class LocationConverter {
 
   public Optional<LocationInfoResponse> toLocationInfo(
-    Location location
+    Location location,
+    Boolean wishStatus
   ) {
 
     String crd_str = location.getCoordinates()
@@ -30,6 +31,7 @@ public class LocationConverter {
     return Optional.of(LocationInfoResponse.builder()
       .object_id(location.getObjectId())
       .adm_nm(location.getAdmNm())
+      .wishStatus(wishStatus)
       .coordinates(crd_arr)
       .build());
   }

@@ -88,8 +88,8 @@ public class MemberService {
     Member member = this.memberRepository.findByMemberIdAndUseStatus(memberId, Const.USE_MEMBERS)
       .orElseThrow(() -> new UsernameNotFoundException("현재 사용중인 회원이 아닙니다"));
 
-    TownResident townResident = this.townResidentRepositroy.findTownResidentByMemberId(
-      memberId).orElse(TownResident.EmptyResident());
+    List<TownResident> townResident = this.townResidentRepositroy.findTownResidentByMemberId(
+      memberId);
     List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberId(
       memberId).stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
 
@@ -144,16 +144,21 @@ public class MemberService {
 
   @Transactional
   public void removeMember(
-    String memberId
+    String memberId,
+    String accessToken
   ) {
     Member member = this.memberRepository.findByMemberId(memberId)
       .orElseThrow(() -> {throw new MemberNotFound("회원을 찾을 수 없습니다.");});
-    Optional<TownResident> townResident = this.townResidentRepositroy.findTownResidentByMemberId(
+    List<TownResident> townResident = this.townResidentRepositroy.findTownResidentByMemberId(
       memberId);
 
-    if (townResident.isPresent()) {
-      townResident.get().removeMemberId();
-      this.townResidentRepositroy.save(townResident.get());
+    Long expiration = authTokenProvider.getExpiration(accessToken);
+    redisTemplate.opsForValue()
+      .set(accessToken, "account_withdrawal", expiration, TimeUnit.MILLISECONDS);
+
+    if (!townResident.isEmpty()) {
+      townResident.forEach(TownResident::removeMemberId);
+      this.townResidentRepositroy.saveAll(townResident);
     }
 
     this.memberWishTownRepository.deleteMemberWishTownsByMemberId(memberId);

@@ -97,8 +97,9 @@ public class TownService {
       townSearchRequest.getSggNm());
 
     Set<Long> memberWishTownList = new HashSet<>();
-    Set<Long> finalMemberWishTownList = memberWishTownList;
+    memberWishTownList = getMemberWishTownList(memberId, memberWishTownList);
 
+    Set<Long> finalMemberWishTownList = memberWishTownList;
     return townSearchList.stream()
       .map(town -> townConverter.toSearchTown(town, finalMemberWishTownList))
       .collect(Collectors.toList());
@@ -119,6 +120,7 @@ public class TownService {
     if (townDetailDto.isEmpty()) {
       throw new TownNotFound("아직 동네가 오픈되지 않았습니다.");
     }
+
     return townConverter.toTownDetailInfo(townDetailDto.get(0), memberWishTownList);
   }
 

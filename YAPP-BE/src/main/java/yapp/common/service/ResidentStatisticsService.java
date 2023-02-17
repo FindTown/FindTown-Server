@@ -58,7 +58,6 @@ public class ResidentStatisticsService {
       if (residentStatisticsMap.containsKey(town.getObjectId())) {
         ResidentStatistics residentStatistics = residentStatisticsMap.get(town.getObjectId());
         town.changeTownDescribe(createTownDescribe(residentStatistics));
-        System.out.println("동네 문구 : " + createTownDescribe(residentStatistics));
       }
     }
 
