@@ -3,6 +3,7 @@ package yapp.domain.town.repository;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
 import static yapp.common.domain.QLocation.location;
+import static yapp.domain.member.entity.WishStatus.YES;
 import static yapp.domain.member.entity.YN.Y;
 import static yapp.domain.town.entity.QMood.mood;
 import static yapp.domain.town.entity.QSubway.subway;
@@ -13,12 +14,14 @@ import static yapp.domain.town.entity.QTownPopular.townPopular;
 import static yapp.domain.town.entity.QTownSubway.townSubway;
 import static yapp.domain.townMap.entity.QInfra.infra;
 import static yapp.domain.townMap.entity.QPlace.place;
+import static yapp.domain.member.entity.QMemberWishTown.memberWishTown;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import org.springframework.stereotype.Repository;
+import yapp.domain.member.entity.WishStatus;
 import yapp.domain.town.dto.QTownDto;
 import yapp.domain.town.dto.TownDetailDto;
 import yapp.domain.town.dto.TownDto;
@@ -139,6 +142,18 @@ public class TownCustomRepositoryImpl implements
           )
         )
       );
+  }
+
+  @Override
+  public List<Town> getMemberWishTownList(
+    String memberId
+  ) {
+    return jpaQueryFactory
+      .selectFrom(town)
+      .innerJoin(memberWishTown)
+      .on(town.objectId.eq(memberWishTown.location.objectId))
+      .where(memberWishTown.memberId.eq(memberId), memberWishTown.wishStatus.eq(YES))
+      .fetch();
   }
 
   private BooleanBuilder subwayContain(List<String> stationCondition) {

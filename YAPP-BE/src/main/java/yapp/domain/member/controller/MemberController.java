@@ -160,17 +160,27 @@ public class MemberController {
     return ApiResponse.success("logout", true);
   }
 
+  @GetMapping("/wishtown")
+  @PreAuthorize("hasRole('USER')")
+  @Operation(summary = "찜 목록 조회")
+  @Tag(name = "[화면]-찜")
+  public ApiResponse getMemberWishTownList(
+    @CurrentAuthPrincipal User memberPrincipal
+  ) {
+
+    return ApiResponse.success(memberService.getMemberWishList(memberPrincipal.getUsername()));
+  }
+
   @PostMapping("/wishtown")
   @PreAuthorize("hasRole('USER')")
   @Operation(summary = "찜 등록/해제")
-  @Tag(name = "[찜]")
+  @Tag(name = "[화면]-찜")
   public ApiResponse setMemberWishTown(
     @CurrentAuthPrincipal User memberPrincipal,
     @RequestParam String object_id
   ) {
-    this.memberService.setMemberWishTown(object_id, memberPrincipal.getUsername());
 
-    return ApiResponse.success("wishTown", true);
+    return ApiResponse.success("wishTown", this.memberService.setMemberWishTown(object_id, memberPrincipal.getUsername()));
   }
 
 

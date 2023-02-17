@@ -3,6 +3,7 @@ package yapp.domain.member.service;
 import static yapp.domain.member.entity.WishStatus.NO;
 import static yapp.domain.member.entity.WishStatus.YES;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +20,8 @@ import yapp.common.oauth.provider.AuthProvider;
 import yapp.common.oauth.token.AuthTokenProvider;
 import yapp.common.repository.LocationRepository;
 import yapp.domain.member.converter.MemberConverter;
+import yapp.domain.member.converter.MemberWishTownConverter;
+import yapp.domain.member.dto.MemberWishTownDto;
 import yapp.domain.member.dto.request.MemberSignUpRequest;
 import yapp.domain.member.dto.response.MemberInfoResponse;
 import yapp.domain.member.entity.Member;
@@ -29,6 +32,7 @@ import yapp.domain.member.repository.MemberRepository;
 import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.town.converter.TownResidentConverter;
 import yapp.domain.town.entity.TownResident;
+import yapp.domain.town.repository.TownCustomRepository;
 import yapp.domain.town.repository.TownResidentRepositroy;
 import yapp.exception.base.member.MemberException.DuplicateMember;
 import yapp.exception.base.member.MemberException.MemberNotFound;
@@ -49,6 +53,8 @@ public class MemberService {
   private final TownResidentConverter townResidentConverter;
   private final AuthTokenProvider authTokenProvider;
   private final RedisTemplate<String, String> redisTemplate;
+  private final TownCustomRepository townRepository;
+  private final MemberWishTownConverter memberWishTownConverter;
 
   public MemberService(
     AuthProvider authProvider,
@@ -60,7 +66,9 @@ public class MemberService {
     MemberConverter memberConverter,
     TownResidentConverter townResidentConverter,
     AuthTokenProvider authTokenProvider,
-    RedisTemplate<String, String> redisTemplate
+    RedisTemplate<String, String> redisTemplate,
+    TownCustomRepository townRepository,
+    MemberWishTownConverter memberWishTownConverter
   ) {
     this.authProvider = authProvider;
     this.memberRepository = memberRepository;
@@ -72,6 +80,8 @@ public class MemberService {
     this.townResidentConverter = townResidentConverter;
     this.authTokenProvider = authTokenProvider;
     this.redisTemplate = redisTemplate;
+    this.townRepository = townRepository;
+    this.memberWishTownConverter = memberWishTownConverter;
   }
 
   public MemberInfoResponse getMemberInfo(String memberId) {
@@ -199,31 +209,50 @@ public class MemberService {
     return this.memberRepository.existsAllByNickname(nickname);
   }
 
+  public HashMap<String, List<MemberWishTownDto>> getMemberWishList(String memberId) {
+
+    HashMap<String, List<MemberWishTownDto>> wishTownListHashMap = new HashMap<>();
+
+    List<MemberWishTownDto> wishTownList = this.townRepository.getMemberWishTownList(
+      memberId)
+      .stream()
+      .map(memberWishTownConverter::toMemberWishTownDto)
+      .collect(Collectors.toList());
+
+    wishTownListHashMap.put("townList", wishTownList);
+
+    return wishTownListHashMap;
+  }
+
   @Transactional
-  public void setMemberWishTown(
+  public String setMemberWishTown(
     String objectId,
     String memberId
   ) {
     Location location = this.locationRepository.getLocationByObjectId(Long.valueOf(objectId))
       .orElseThrow();
+    
+    String msg = "찜 등록";
 
-    MemberWishTown wishTown = this.memberWishTownRepository.getMemberWishTownByMemberIdAndLocation(
-      memberId, location).orElseThrow();
-
-    if (wishTown != null) {
+    try{
+      MemberWishTown wishTown = this.memberWishTownRepository.getMemberWishTownByMemberIdAndLocation(
+        memberId, location).orElseThrow();
 
       if (wishTown.getWishStatus().equals(YES)) {
         wishTown.changeWishStatus(NO);
+        msg = "찜 해제";
       } else {
         wishTown.changeWishStatus(YES);
       }
-    } else {
+    } catch (Exception e){
       memberWishTownRepository.save(MemberWishTown.builder()
         .wishStatus(YES)
         .memberId(memberId)
         .location(location)
         .build());
     }
+
+    return msg;
   }
 
 }
