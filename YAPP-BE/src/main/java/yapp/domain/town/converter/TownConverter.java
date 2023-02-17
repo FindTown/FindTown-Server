@@ -41,7 +41,8 @@ public class TownConverter {
     return TownSearchResponse.builder()
       .objectId(town.getObjectId())
       .townIntroduction(town.getTownIntroduction())
-      .wishTown(memberWishTownList.contains((town.getObjectId()))).build();
+      .wishTown(memberWishTownList.contains(town.getObjectId()))
+      .build();
   }
 
   public TownInfoResponse toTownDetailInfo(
@@ -50,7 +51,7 @@ public class TownConverter {
   ) {
     return TownInfoResponse.builder()
       .objectId(townDetailDto.getObjectId())
-      .townExplanation(townDetailDto.getTownExplanation())
+      .townExplanation(townDetailDto.getTownDescribe())
       .reliefYn(townDetailDto.getReliefYn().equals("Y") ? "안심마을보안관 활동지" : "")
       .lifeRate(townDetailDto.getLifeRate())
       .crimeRate(townDetailDto.getCrimeRate())
