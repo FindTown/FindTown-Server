@@ -33,6 +33,10 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
+datasource:
+  hikari:
+    leak-detection-threshold: 2000
+
 social-kakao:
   clientId: ${CLIENT_ID}
   redirectUri: http://localhost:8080/oauth2/callback/kakao
