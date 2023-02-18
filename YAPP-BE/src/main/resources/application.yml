@@ -19,11 +19,23 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     hikari:
-      connection-timeout: 3000
-      validation-timeout: 3000
-      minimum-idle: 5
-      max-lifetime: 240000
+      minimum-idle: 15
       maximum-pool-size: 20
+      connection-timeout: 3000
+      validation-timeout: 1000
+      max-lifetime: 600000
+      connection-test-query: select 1
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+        rewriteBatchedStatements: true
 
   jpa:
     open-in-view: false
@@ -43,6 +55,11 @@ springdoc:
     operationsSorter: alpha
 
 server:
+  tomcat:
+    threads:
+      max: 20
+      min-spare: 10
+    accept-count: 100
   servlet:
     encoding:
       charset: UTF-8
