@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.town.comparator.TownComparator;
 import yapp.domain.town.converter.TownConverter;
@@ -46,6 +47,7 @@ public class TownService {
   }
 
   // 동네 필터
+  @Transactional(readOnly = true)
   public List<TownFilterResponse> getTownFilter(
     Optional<String> memberId,
     TownFilterRequest townFilterRequest
@@ -88,6 +90,7 @@ public class TownService {
       .collect(Collectors.toList());
   }
 
+  @Transactional(readOnly = true)
   public List<TownSearchResponse> getTownSearch(
     Optional<String> memberId,
     TownSearchRequest townSearchRequest
@@ -105,6 +108,7 @@ public class TownService {
       .collect(Collectors.toList());
   }
 
+  @Transactional(readOnly = true)
   public TownInfoResponse getTownDetailInfo(
     Optional<String> memberId,
     Long objectId
