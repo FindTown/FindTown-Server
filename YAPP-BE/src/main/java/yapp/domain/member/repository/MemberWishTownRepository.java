@@ -8,9 +8,7 @@ import yapp.domain.member.entity.MemberWishTown;
 import yapp.domain.member.entity.WishStatus;
 
 public interface MemberWishTownRepository extends JpaRepository<MemberWishTown, Long> {
-
-  List<MemberWishTown> getMemberWishTownsByMemberId(String memberId);
-
+  
   List<MemberWishTown> getMemberWishTownsByMemberIdAndWishStatus(
     String memberId,
     WishStatus wishStatus

@@ -90,8 +90,8 @@ public class MemberService {
 
     List<TownResident> townResident = this.townResidentRepositroy.findTownResidentByMemberId(
       memberId);
-    List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberId(
-      memberId).stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
+    List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberIdAndWishStatus(
+      memberId, YES).stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
 
     return memberConverter.toMemberInfo(
       member, memberWishTownList, townResident);
@@ -219,7 +219,7 @@ public class MemberService {
     HashMap<String, List<MemberWishTownDto>> wishTownListHashMap = new HashMap<>();
 
     List<MemberWishTownDto> wishTownList = this.townRepository.getMemberWishTownList(
-      memberId)
+        memberId)
       .stream()
       .map(memberWishTownConverter::toMemberWishTownDto)
       .collect(Collectors.toList());
@@ -236,10 +236,10 @@ public class MemberService {
   ) {
     Location location = this.locationRepository.getLocationByObjectId(Long.valueOf(objectId))
       .orElseThrow();
-    
+
     String msg = "찜 등록";
 
-    try{
+    try {
       MemberWishTown wishTown = this.memberWishTownRepository.getMemberWishTownByMemberIdAndLocation(
         memberId, location).orElseThrow();
 
@@ -249,7 +249,7 @@ public class MemberService {
       } else {
         wishTown.changeWishStatus(YES);
       }
-    } catch (Exception e){
+    } catch (Exception e) {
       memberWishTownRepository.save(MemberWishTown.builder()
         .wishStatus(YES)
         .memberId(memberId)

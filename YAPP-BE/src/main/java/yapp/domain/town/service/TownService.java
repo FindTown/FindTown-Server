@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import yapp.domain.member.entity.WishStatus;
 import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.town.comparator.TownComparator;
 import yapp.domain.town.converter.TownConverter;
@@ -133,8 +134,8 @@ public class TownService {
     Set<Long> memberWishTownList
   ) {
     if (memberId.isPresent()) {
-      memberWishTownList = memberWishTownRepository.getMemberWishTownsByMemberId(
-          memberId.get())
+      memberWishTownList = memberWishTownRepository.getMemberWishTownsByMemberIdAndWishStatus(
+          memberId.get(), WishStatus.YES)
         .stream().map(town -> town.getLocation().getObjectId()).collect(Collectors.toSet());
     }
     return memberWishTownList;
