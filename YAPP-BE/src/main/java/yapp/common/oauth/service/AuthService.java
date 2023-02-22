@@ -59,7 +59,7 @@ public class AuthService implements AuthProvider {
     Optional<Member> member = this.memberRepository.findByMemberId(
       memberId);
     if (member.isEmpty()) {
-      return Map.of("login_status", Boolean.FALSE);
+      return getLoginFailEmptyMap();
     }
 
     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
@@ -118,6 +118,18 @@ public class AuthService implements AuthProvider {
     result.put("cookie_max_age", cookieMaxAge);
     result.put("cookie_max_age_for_access", cookieMaxAgeForAccess);
     result.put("login_status", Boolean.TRUE);
+    return result;
+  }
+
+  private static Map<String, Object> getLoginFailEmptyMap() {
+    Map<String, Object> result = new HashMap<>();
+    result.put("access_token_expiry", 0);
+    result.put("refresh_token_expiry", 0);
+    result.put("access_token", "");
+    result.put("refresh_token", "");
+    result.put("cookie_max_age", 0);
+    result.put("cookie_max_age_for_access", 0);
+    result.put("login_status", Boolean.FALSE);
     return result;
   }
 
