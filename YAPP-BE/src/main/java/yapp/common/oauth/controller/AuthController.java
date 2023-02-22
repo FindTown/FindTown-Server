@@ -65,6 +65,11 @@ public class AuthController {
   ) {
     Map<String, Object> result = authService.login(memberSignInRequest.getMemberId());
 
+    // 회원이 아닐시
+    if (result.get("login_status").equals(Boolean.FALSE)) {
+      return new ApiResponse(new ApiResponseHeader(200, "회원이 아닌 계정입니다."), result);
+    }
+
     // access_token 담기
     CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
     CookieUtil.addCookieForAccess(

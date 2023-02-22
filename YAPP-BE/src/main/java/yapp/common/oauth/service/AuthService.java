@@ -3,6 +3,7 @@ package yapp.common.oauth.service;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -55,12 +56,14 @@ public class AuthService implements AuthProvider {
   @Override
   public Map<String, Object> login(String memberId) {
 
-    Member member = this.memberRepository.findByMemberId(
-        memberId)
-      .orElseThrow(() -> {throw new MemberNotFound("가입된 회원을 찾을수 없습니다.");});
+    Optional<Member> member = this.memberRepository.findByMemberId(
+      memberId);
+    if (member.isEmpty()) {
+      return Map.of("login_status", Boolean.FALSE);
+    }
 
     UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-      member.getMemberId(),
+      member.get().getMemberId(),
       Const.DEFAULT_PASSWORD
     );
 
@@ -69,7 +72,7 @@ public class AuthService implements AuthProvider {
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Date now = new Date();
-    AuthToken accessToken = getAuthToken(member.getMemberId(), authentication);
+    AuthToken accessToken = getAuthToken(member.get().getMemberId(), authentication);
 
     long refreshTokenExpiry = appProperties.getAuth().getRefreshTokenExpiry();
     long accessTokenExpiry = appProperties.getAuth().getTokenExpiry();
@@ -79,9 +82,9 @@ public class AuthService implements AuthProvider {
     AuthToken refreshToken = getRefreshToken(now, refreshTokenExpiry);
 
     MemberRefreshToken memberRefreshToken = memberRefreshTokenRepository.findByMemberId(
-      member.getMemberId());
+      member.get().getMemberId());
 
-    extracted(member.getMemberId(), refreshToken, memberRefreshToken);
+    extracted(member.get().getMemberId(), refreshToken, memberRefreshToken);
 
     return getStringStringMap(
       accessToken, accessTokenExpiry, refreshTokenExpiry, cookieMaxAge, cookieMaxAgeForAccess,
@@ -114,6 +117,7 @@ public class AuthService implements AuthProvider {
     result.put("refresh_token", refreshToken.getToken());
     result.put("cookie_max_age", cookieMaxAge);
     result.put("cookie_max_age_for_access", cookieMaxAgeForAccess);
+    result.put("login_status", Boolean.TRUE);
     return result;
   }
 
