@@ -42,8 +42,9 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
+          file: ./Dockerfile
           push: true
-          tags: ios1teamyapp21/yapp21-ios1-team:latest
+          tags: latest
           platform: linux/amd64
       
       - name: Install and configure AWS CLI
