@@ -1,0 +1,22 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /home/ec2-user/townscoop 
+
+permissions:
+  - object: /home/ec2-user/  
+    owner: ec2-user 
+    group: ec2-user
+    mode: 755
+
+hooks:
+  BeforeInstall:
+    - location: beforeInstall.sh
+      timeout: 60
+      runas: ec2-user
+  AfterInstall:
+    - location: townscoop-deploy.sh
+      timeout: 60
+      runas: ec2-user
