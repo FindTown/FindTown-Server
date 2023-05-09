@@ -43,7 +43,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./Dockerfile
+          file: ./YAPP-BE/Dockerfile
           push: true
           tags: ios1teamyapp21/yapp21-ios1-team:latest
           platform: linux/amd64
