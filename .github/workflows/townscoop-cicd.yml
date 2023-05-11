@@ -64,4 +64,4 @@ jobs:
           --deployment-config-name CodeDeployDefault.OneAtATime \
           --deployment-group-name yapp-townscoop-group \
           --description "Deployment triggered from GitHub Actions" \
-          --revision revisionType=Docker,imageName=ios1teamyapp21/yapp21-ios1-team:latest
+          --revision string=***/yapp21-ios1-team:latest
