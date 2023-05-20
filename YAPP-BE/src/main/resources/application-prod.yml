@@ -44,7 +44,7 @@ app:
       - ${KAKAO_REDIRECT_URL}
 
 cors:
-  allowed-origins: ${ALLOWED_ORIGIN},${ALLOWED_REDIS_ORIGIN},https://townscoop.site
+  allowed-origins: ${ALLOWED_ORIGIN},${ALLOWED_REDIS_ORIGIN},http://localhost:8080,http://localhost:6379,https://townscoop.site
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS
   allowed-headers: '*'
   max-age: 3600
