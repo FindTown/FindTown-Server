@@ -31,7 +31,8 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-      
+        with:
+          platform: linux/amd64      
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -41,7 +42,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: .
+          context: ./YAPP-BE
+          file: ./YAPP-BE/Dockerfile
           push: true
           tags: ios1teamyapp21/yapp21-ios1-team:latest
           platform: linux/amd64
@@ -62,4 +64,4 @@ jobs:
           --deployment-config-name CodeDeployDefault.OneAtATime \
           --deployment-group-name yapp-townscoop-group \
           --description "Deployment triggered from GitHub Actions" \
-          --revision revisionType=Docker,imageName=ios1teamyapp21/yapp21-ios1-team:latest
+          --revision string=***/yapp21-ios1-team:latest
