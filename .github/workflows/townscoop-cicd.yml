@@ -64,4 +64,6 @@ jobs:
           --deployment-config-name CodeDeployDefault.OneAtATime \
           --deployment-group-name yapp-townscoop-group \
           --description "Deployment triggered from GitHub Actions" \
-          --file-exists-behavior OVERWRITE
+          --revision revisionType=AppSpecContent,\
+          appSpecContent={content="$(cat appspec.yml)",\
+          sha256sum="$(shasum -a 256 appspec.yml | awk '{print $1}')"}
