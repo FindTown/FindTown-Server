@@ -64,6 +64,4 @@ jobs:
           --deployment-config-name CodeDeployDefault.OneAtATime \
           --deployment-group-name yapp-townscoop-group \
           --description "Deployment triggered from GitHub Actions" \
-          --revision revisionType=AppSpecContent,\
-          appSpecContent={content="$(cat appspec.yml)",\
-          sha256sum="$(shasum -a 256 appspec.yml | awk '{print $1}')"}
+          --s3-location bucket=yapp-codedeploy-bucket,bundleType=zip,key=$GITHUB_SHA.zip
