@@ -64,4 +64,4 @@ jobs:
           --deployment-config-name CodeDeployDefault.OneAtATime \
           --deployment-group-name yapp-townscoop-group \
           --description "Deployment triggered from GitHub Actions" \
-          --revision revisionType=GitHub,gitHubLocation=ios1teamyapp21/yapp21-ios1-team:latest
+          --file-exists-behavior OVERWRITE
