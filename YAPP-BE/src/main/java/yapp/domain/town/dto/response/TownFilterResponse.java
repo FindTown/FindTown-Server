@@ -8,6 +8,7 @@ import lombok.Getter;
 public class TownFilterResponse {
   private Long objectId;
   private String townIntroduction;
+  private String[] moods;
   private double safetyRate;
   private int lifeRate;
   private int crimeRate;

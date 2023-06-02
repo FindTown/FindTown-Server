@@ -9,6 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,4 +33,23 @@ public class TownMood {
   @JoinColumn(name = "mood_id", referencedColumnName = "id", nullable = false)
   private Mood mood;
 
+  @Column(name = "cnt", columnDefinition = "BIGINT")
+  private Long cnt;
+
+  @Version
+  private int version;
+
+  public TownMood(
+          Town town,
+          Mood mood,
+          Long cnt
+  ) {
+    this.town = town;
+    this.mood = mood;
+    this.cnt = cnt;
+  }
+
+  public void changeMoodCnt(Long cnt) {
+    this.cnt = cnt;
+  }
 }

@@ -1,8 +1,11 @@
 package yapp.domain.member.service;
 
+import static yapp.common.config.Const.MAX_RETRY;
 import static yapp.domain.member.entity.WishStatus.NO;
 import static yapp.domain.member.entity.WishStatus.YES;
 
+import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,13 +34,21 @@ import yapp.domain.member.repository.MemberRefreshTokenRepository;
 import yapp.domain.member.repository.MemberRepository;
 import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.town.converter.TownResidentConverter;
+import yapp.domain.town.entity.Mood;
+import yapp.domain.town.entity.Town;
+import yapp.domain.town.entity.TownMood;
 import yapp.domain.town.entity.TownResident;
+import yapp.domain.town.repository.MoodRepository;
 import yapp.domain.town.repository.TownCustomRepository;
+import yapp.domain.town.repository.TownMoodRepository;
+import yapp.domain.town.repository.TownRepository;
 import yapp.domain.town.repository.TownResidentRepositroy;
 import yapp.exception.base.member.MemberException.DuplicateMember;
 import yapp.exception.base.member.MemberException.MemberNotFound;
 import yapp.exception.base.member.MemberException.MemberSignUpFail;
 import yapp.exception.base.member.MemberException.NickNameDuplicated;
+import yapp.exception.base.town.TownException.MoodNotFound;
+import yapp.exception.base.town.TownException.TownNotFound;
 
 @Slf4j
 @Service
@@ -45,61 +56,74 @@ import yapp.exception.base.member.MemberException.NickNameDuplicated;
 public class MemberService {
   private final AuthProvider authProvider;
   private final MemberRepository memberRepository;
+  private final TownMoodRepository townMoodRepository;
   private final MemberWishTownRepository memberWishTownRepository;
   private final MemberRefreshTokenRepository memberRefreshTokenRepository;
   private final LocationRepository locationRepository;
   private final TownResidentRepositroy townResidentRepositroy;
+  private final MoodRepository moodRepository;
   private final MemberConverter memberConverter;
   private final TownResidentConverter townResidentConverter;
   private final AuthTokenProvider authTokenProvider;
   private final RedisTemplate<String, String> redisTemplate;
-  private final TownCustomRepository townRepository;
+  private final TownRepository townRepository;
+  private final TownCustomRepository townCustomRepository;
   private final MemberWishTownConverter memberWishTownConverter;
 
   public MemberService(
-    AuthProvider authProvider,
-    MemberRepository memberRepository,
-    MemberWishTownRepository memberWishTownRepository,
-    MemberRefreshTokenRepository memberRefreshTokenRepository,
-    LocationRepository locationRepository,
-    TownResidentRepositroy townResidentRepositroy,
-    MemberConverter memberConverter,
-    TownResidentConverter townResidentConverter,
-    AuthTokenProvider authTokenProvider,
-    RedisTemplate<String, String> redisTemplate,
-    TownCustomRepository townRepository,
-    MemberWishTownConverter memberWishTownConverter
+          AuthProvider authProvider,
+          MemberRepository memberRepository,
+          TownMoodRepository townMoodRepository,
+          MemberWishTownRepository memberWishTownRepository,
+          MemberRefreshTokenRepository memberRefreshTokenRepository,
+          LocationRepository locationRepository,
+          TownResidentRepositroy townResidentRepositroy,
+          MoodRepository moodRepository,
+          MemberConverter memberConverter,
+          TownResidentConverter townResidentConverter,
+          AuthTokenProvider authTokenProvider,
+          RedisTemplate<String, String> redisTemplate,
+          TownRepository townRepository,
+          TownCustomRepository townCustomRepository,
+          MemberWishTownConverter memberWishTownConverter
   ) {
     this.authProvider = authProvider;
     this.memberRepository = memberRepository;
+    this.townMoodRepository = townMoodRepository;
     this.memberWishTownRepository = memberWishTownRepository;
     this.memberRefreshTokenRepository = memberRefreshTokenRepository;
     this.locationRepository = locationRepository;
     this.townResidentRepositroy = townResidentRepositroy;
+    this.moodRepository = moodRepository;
     this.memberConverter = memberConverter;
     this.townResidentConverter = townResidentConverter;
     this.authTokenProvider = authTokenProvider;
     this.redisTemplate = redisTemplate;
     this.townRepository = townRepository;
+    this.townCustomRepository = townCustomRepository;
     this.memberWishTownConverter = memberWishTownConverter;
   }
 
   public MemberInfoResponse getMemberInfo(String memberId) {
-    Member member = this.memberRepository.findByMemberIdAndUseStatus(memberId, Const.USE_MEMBERS)
-      .orElseThrow(() -> new UsernameNotFoundException("현재 사용중인 회원이 아닙니다"));
+    Member member = this.memberRepository.findByMemberIdAndUseStatus(
+                    memberId, Const.USE_MEMBERS)
+            .orElseThrow(() -> new UsernameNotFoundException("현재 사용중인 회원이 아닙니다"));
 
     List<TownResident> townResident = this.townResidentRepositroy.findTownResidentByMemberId(
-      memberId);
+            memberId);
     List<Location> memberWishTownList = this.memberWishTownRepository.getMemberWishTownsByMemberIdAndWishStatus(
-      memberId, YES).stream().map(MemberWishTown::getLocation).collect(Collectors.toList());
+                    memberId, YES)
+            .stream()
+            .map(MemberWishTown::getLocation)
+            .collect(Collectors.toList());
 
     return memberConverter.toMemberInfo(
-      member, memberWishTownList, townResident);
+            member, memberWishTownList, townResident);
   }
 
   @Transactional
   public Map<String, Object> memberSignUp(
-    MemberSignUpRequest memberSignUpRequest
+          MemberSignUpRequest memberSignUpRequest
   ) {
     //회원 체크
     duplicateMemberConfirm(memberSignUpRequest.getMemberId());
@@ -108,21 +132,34 @@ public class MemberService {
 
     if (memberSignUpRequest.getObjectId() != null) {
       Location location = this.locationRepository.getLocationByObjectId(
-          memberSignUpRequest.getObjectId())
-        .orElseThrow(() -> new RuntimeException("입력한 동네는 현재 존재하지 않습니다."));
+                      memberSignUpRequest.getObjectId())
+              .orElseThrow(() -> new RuntimeException("입력한 동네는 현재 존재하지 않습니다."));
       this.memberWishTownRepository.save(
-        new MemberWishTown(memberSignUpRequest.getMemberId(), location, YES));
+              new MemberWishTown(memberSignUpRequest.getMemberId(), location, YES));
     }
 
     Long residentObjectId = 0L;
     String[] residentAdmNm = memberSignUpRequest.getResident().getResidentAddress().split(" ");
     Optional<Location> residentLocation = this.locationRepository.getLocationByAdmNm(
-      residentAdmNm[residentAdmNm.length - 1]);
+            residentAdmNm[residentAdmNm.length - 1]);
     if (residentLocation.isPresent()) {
       residentObjectId = residentLocation.get().getObjectId();
     }
     TownResident insertTownResident = this.townResidentConverter.toEntity(
-      memberSignUpRequest, residentObjectId);
+            memberSignUpRequest, residentObjectId);
+
+        /* todo : town_mood에 동네 분위기 입력/수정 로직 추가
+                 - '낙관적 락'으로 동시성을 제어한다.
+                 1. find 진행
+                     1-1 이미 존재하면 -> cnt++
+                     1-2 없으면 TownMood 객체를 만든다. -> 새로 저장
+                 2. lock 예외 로직 -> 새로 find로 조회한다음 cnt++한다.
+         */
+    String[] selectMoods = memberSignUpRequest.getResident().getMoods();
+    Long finalResidentObjectId = residentObjectId;
+    Arrays.stream(selectMoods).forEach(mood -> {
+      updateTownMoodCntWithRetry(finalResidentObjectId, mood);
+    });
 
     String memberId;
     this.townResidentRepositroy.save(insertTownResident);
@@ -135,26 +172,68 @@ public class MemberService {
     return authProvider.login(memberId);
   }
 
+  @Transactional
+  public void updateTownMoodCntWithRetry(
+          Long objectId,
+          String mood
+  ) {
+    int retryCnt = 0;
+    while (retryCnt < MAX_RETRY) {
+      try {
+        updateTownMoodCnt(objectId, mood);
+      } catch (ConcurrentModificationException e) {
+        retryCnt++;
+      }
+    }
+  }
+
+  @Transactional
+  public void updateTownMoodCnt(
+          Long objectId,
+          String mood
+  ) {
+    Optional<TownMood> getTownMood = this.townMoodRepository.findByTownObjectIdAndMoodKeyword(
+            objectId, mood);
+    if (getTownMood.isPresent()) {
+      TownMood townMood = getTownMood.get();
+      int currentVersion = townMood.getVersion();
+      townMood.changeMoodCnt(townMood.getCnt() + 1);
+      this.townMoodRepository.save(townMood);
+      int newVersion = townMood.getVersion();
+      if (newVersion != currentVersion + 1) {
+        throw new ConcurrentModificationException("동시에 town_mood수정으로인한 에러발생");
+      }
+    } else {
+      // Town 객체 조회, Mood 객체 조회 후 insert 진행
+      Town getTown = this.townRepository.findTownByObjectId(objectId)
+              .orElseThrow(() -> {throw new TownNotFound("해당 동네를 찾을 수 없습니다.");});
+      Mood getMood = this.moodRepository.findByKeyword(mood)
+              .orElseThrow(() -> {throw new MoodNotFound("해당 분위기를 찾을 수 없습니다.");});
+      TownMood newTownMood = new TownMood(getTown, getMood, 1L);
+      this.townMoodRepository.save(newTownMood);
+    }
+  }
+
   public void duplicateMemberConfirm(
-    String memberId
+          String memberId
   ) {
     this.memberRepository.findByMemberId(memberId)
-      .map(member -> {throw new DuplicateMember("이미 가입된 회원입니다");});
+            .map(member -> {throw new DuplicateMember("이미 가입된 회원입니다");});
   }
 
   @Transactional
   public void removeMember(
-    String memberId,
-    String accessToken
+          String memberId,
+          String accessToken
   ) {
     Member member = this.memberRepository.findByMemberId(memberId)
-      .orElseThrow(() -> {throw new MemberNotFound("회원을 찾을 수 없습니다.");});
+            .orElseThrow(() -> {throw new MemberNotFound("회원을 찾을 수 없습니다.");});
     List<TownResident> townResident = this.townResidentRepositroy.findTownResidentByMemberId(
-      memberId);
+            memberId);
 
     Long expiration = authTokenProvider.getExpiration(accessToken);
     redisTemplate.opsForValue()
-      .set(accessToken, "account_withdrawal", expiration, TimeUnit.MILLISECONDS);
+            .set(accessToken, "account_withdrawal", expiration, TimeUnit.MILLISECONDS);
 
     if (!townResident.isEmpty()) {
       townResident.forEach(TownResident::removeMemberId);
@@ -168,11 +247,11 @@ public class MemberService {
 
   @Transactional
   public void editNickname(
-    String memberId,
-    String newNickname
+          String memberId,
+          String newNickname
   ) {
     Member member = this.memberRepository.findByMemberId(memberId)
-      .orElseThrow(() -> {throw new MemberNotFound("회원을 찾을 수 없습니다.");});
+            .orElseThrow(() -> {throw new MemberNotFound("회원을 찾을 수 없습니다.");});
 
     boolean duplicateNickname = this.checkDuplicateNickname(newNickname);
     if (duplicateNickname) {
@@ -184,7 +263,7 @@ public class MemberService {
   }
 
   public int checkRegister(
-    String memberId
+          String memberId
   ) {
     Optional<Member> member = this.memberRepository.findByMemberId(memberId);
     if (member.isEmpty()) {
@@ -195,12 +274,12 @@ public class MemberService {
 
   @Transactional
   public void memberLogout(
-    String accessToken,
-    String memberId
+          String accessToken,
+          String memberId
   ) {
     // 1. DB refresh 토큰 공백으로 변경
     MemberRefreshToken memberRefreshToken = this.memberRefreshTokenRepository.findByMemberId(
-      memberId);
+            memberId);
     memberRefreshToken.setRefreshToken("");
 
     // 2. redis에 access_token 등록
@@ -218,11 +297,11 @@ public class MemberService {
 
     HashMap<String, List<MemberWishTownDto>> wishTownListHashMap = new HashMap<>();
 
-    List<MemberWishTownDto> wishTownList = this.townRepository.getMemberWishTownList(
-        memberId)
-      .stream()
-      .map(memberWishTownConverter::toMemberWishTownDto)
-      .collect(Collectors.toList());
+    List<MemberWishTownDto> wishTownList = this.townCustomRepository.getMemberWishTownList(
+                    memberId)
+            .stream()
+            .map(memberWishTownConverter::toMemberWishTownDto)
+            .collect(Collectors.toList());
 
     wishTownListHashMap.put("townList", wishTownList);
 
@@ -231,17 +310,17 @@ public class MemberService {
 
   @Transactional
   public String setMemberWishTown(
-    String objectId,
-    String memberId
+          String objectId,
+          String memberId
   ) {
     Location location = this.locationRepository.getLocationByObjectId(Long.valueOf(objectId))
-      .orElseThrow();
+            .orElseThrow();
 
     String msg = "찜 등록";
 
     try {
       MemberWishTown wishTown = this.memberWishTownRepository.getMemberWishTownByMemberIdAndLocation(
-        memberId, location).orElseThrow();
+              memberId, location).orElseThrow();
 
       if (wishTown.getWishStatus().equals(YES)) {
         wishTown.changeWishStatus(NO);
@@ -251,10 +330,10 @@ public class MemberService {
       }
     } catch (Exception e) {
       memberWishTownRepository.save(MemberWishTown.builder()
-        .wishStatus(YES)
-        .memberId(memberId)
-        .location(location)
-        .build());
+              .wishStatus(YES)
+              .memberId(memberId)
+              .location(location)
+              .build());
     }
 
     return msg;

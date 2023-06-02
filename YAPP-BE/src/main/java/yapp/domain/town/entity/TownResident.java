@@ -36,6 +36,9 @@ public class TownResident extends BaseEntity {
   @Column(name = "resident_review")
   private String residentReview;
 
+  @Column(name = "moods")
+  private String moods;
+
   @Column(name = "resident_year")
   private int residentYear;
 
@@ -48,25 +51,27 @@ public class TownResident extends BaseEntity {
 
   @Builder
   public TownResident(
-    Long seq,
-    Long objectId,
-    String memberId,
-    String residentAddress,
-    String residentReview,
-    int residentYear,
-    int residentMonth
+          Long seq,
+          Long objectId,
+          String memberId,
+          String residentAddress,
+          String residentReview,
+          String moods,
+          int residentYear,
+          int residentMonth
   ) {
     this.seq = seq;
     this.objectId = objectId;
     this.memberId = memberId;
     this.residentAddress = residentAddress;
     this.residentReview = residentReview;
+    this.moods = moods;
     this.residentYear = residentYear;
     this.residentMonth = residentMonth;
   }
 
   public static TownResident EmptyResident() {
-    return new TownResident(0L, 0L, "", "", "", 0, 0);
+    return new TownResident(0L, 0L, "", "", "", "", 0, 0);
   }
 
 }

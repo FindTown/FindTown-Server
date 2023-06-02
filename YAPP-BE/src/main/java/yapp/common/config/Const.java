@@ -9,5 +9,6 @@ public class Const {
   public static final int QUIT_MEMBERS = 2;
   public static final String NON_USER = "Non-User";
 
+  public static final int MAX_RETRY = 4;
   public static final double DIVIDE_NUM = 2.0;
 }

@@ -19,68 +19,69 @@ import yapp.domain.town.entity.TownHotPlace;
 public class TownConverter {
 
   public TownFilterResponse toFilterTown(
-    TownDto townDto,
-    Set<Long> memberWishTownList
+          TownDto townDto,
+          Set<Long> memberWishTownList
   ) {
     return TownFilterResponse.builder()
-      .objectId(townDto.getObjectId())
-      .townIntroduction(townDto.getTownIntroduction())
-      .safetyRate(townDto.getSafetyRate())
-      .lifeRate(townDto.getLifeRate())
-      .crimeRate(townDto.getCrimeRate())
-      .trafficRate(townDto.getTrafficRate())
-      .reliefYn(townDto.getReliefYn())
-      .wishTown(memberWishTownList.contains(townDto.getObjectId()))
-      .build();
+            .objectId(townDto.getObjectId())
+            .townIntroduction(townDto.getTownIntroduction())
+            .moods(townDto.getMoods())
+            .safetyRate(townDto.getSafetyRate())
+            .lifeRate(townDto.getLifeRate())
+            .crimeRate(townDto.getCrimeRate())
+            .trafficRate(townDto.getTrafficRate())
+            .reliefYn(townDto.getReliefYn())
+            .wishTown(memberWishTownList.contains(townDto.getObjectId()))
+            .build();
   }
 
   public TownSearchResponse toSearchTown(
-    Town town,
-    Set<Long> memberWishTownList
+          Town town,
+          Set<Long> memberWishTownList
   ) {
     return TownSearchResponse.builder()
-      .objectId(town.getObjectId())
-      .townIntroduction(town.getTownIntroduction())
-      .wishTown(memberWishTownList.contains(town.getObjectId()))
-      .build();
+            .objectId(town.getObjectId())
+            .townIntroduction(town.getTownIntroduction())
+            .wishTown(memberWishTownList.contains(town.getObjectId()))
+            .build();
   }
 
   public TownInfoResponse toTownDetailInfo(
-    TownDetailDto townDetailDto,
-    Set<Long> memberWishTownList
+          TownDetailDto townDetailDto,
+          Set<Long> memberWishTownList
   ) {
     return TownInfoResponse.builder()
-      .objectId(townDetailDto.getObjectId())
-      .townExplanation(townDetailDto.getTownDescribe())
-      .reliefYn(townDetailDto.getReliefYn().equals("Y") ? "안심마을보안관 활동지" : "")
-      .lifeRate(townDetailDto.getLifeRate())
-      .crimeRate(townDetailDto.getCrimeRate())
-      .trafficRate(townDetailDto.getTrafficRate())
-      .cleanlinessRank(townDetailDto.getCleanlinessRank())
-      .liveRank(townDetailDto.getLiveRank())
-      .popularTownRate(townDetailDto.getTownPopular().getPopularRate())
-      .popularGeneration(townDetailDto.getTownPopular().getPopularGeneration())
-      .townSubwayList(townDetailDto.getTownSubwayList()
-        .stream()
-        .map(Subway::getLineNum)
-        .distinct()
-        .collect(
-          Collectors.toList()))
-      .townMoodList(
-        townDetailDto.getTownMoodList()
-          .stream()
-          .map(Mood::getKeyword)
-          .distinct()
-          .collect(
-            Collectors.toList()))
-      .townHotPlaceList(townDetailDto.getTownHotPlaceList()
-        .stream()
-        .map(TownHotPlace::getHotPlaceNm)
-        .distinct()
-        .collect(
-          Collectors.toList()))
-      .wishTown(memberWishTownList.contains(townDetailDto.getObjectId()))
-      .build();
+            .objectId(townDetailDto.getObjectId())
+            .townExplanation(townDetailDto.getTownDescribe())
+            .reliefYn(townDetailDto.getReliefYn().equals("Y") ? "안심마을보안관 활동지" : "")
+            .lifeRate(townDetailDto.getLifeRate())
+            .crimeRate(townDetailDto.getCrimeRate())
+            .trafficRate(townDetailDto.getTrafficRate())
+            .cleanlinessRank(townDetailDto.getCleanlinessRank())
+            .liveRank(townDetailDto.getLiveRank())
+            .popularTownRate(townDetailDto.getTownPopular().getPopularRate())
+            .popularGeneration(townDetailDto.getTownPopular().getPopularGeneration())
+            .townSubwayList(townDetailDto.getTownSubwayList()
+                    .stream()
+                    .map(Subway::getLineNum)
+                    .distinct()
+                    .collect(
+                            Collectors.toList()))
+            .townMoodList(
+                    townDetailDto.getTownMoodList()
+                            .stream()
+                            .map(Mood::getKeyword)
+                            .distinct()
+                            .collect(
+                                    Collectors.toList()))
+            .townHotPlaceList(townDetailDto.getTownHotPlaceList()
+                    .stream()
+                    .map(TownHotPlace::getHotPlaceNm)
+                    .distinct()
+                    .collect(
+                            Collectors.toList()))
+            .wishTown(memberWishTownList.contains(townDetailDto.getObjectId()))
+            .build();
   }
 
 }

@@ -39,8 +39,8 @@ public class MemberController {
   private final AuthTokenProvider tokenProvider;
 
   public MemberController(
-    MemberService memberService,
-    AuthTokenProvider tokenProvider
+          MemberService memberService,
+          AuthTokenProvider tokenProvider
   ) {
     this.memberService = memberService;
     this.tokenProvider = tokenProvider;
@@ -51,10 +51,10 @@ public class MemberController {
   @Operation(summary = "내 정보 확인")
   @Tag(name = "[화면]-마이페이지")
   public ApiResponse getMemberInfo(
-    @CurrentAuthPrincipal User memberPrincipal
+          @CurrentAuthPrincipal User memberPrincipal
   ) {
     MemberInfoResponse memberInfoResponse = this.memberService.getMemberInfo(
-      memberPrincipal.getUsername());
+            memberPrincipal.getUsername());
     return ApiResponse.success("member_info", memberInfoResponse);
   }
 
@@ -62,24 +62,24 @@ public class MemberController {
   @Operation(summary = "회원가입")
   @Tag(name = "[화면]-로그인/회원가입")
   public ApiResponse socialSignUp(
-    HttpServletRequest request,
-    HttpServletResponse response,
-    @RequestBody MemberSignUpRequest memberSignUpRequest
+          HttpServletRequest request,
+          HttpServletResponse response,
+          @RequestBody MemberSignUpRequest memberSignUpRequest
   ) {
     Map<String, Object> result = this.memberService.memberSignUp(memberSignUpRequest);
 
     // access_token 담기
     CookieUtil.deleteCookie(request, response, ACCESS_TOKEN);
     CookieUtil.addCookieForAccess(
-      response, ACCESS_TOKEN, String.valueOf(result.get("access_token")),
-      (Integer) result.get("cookie_max_age_for_access")
+            response, ACCESS_TOKEN, String.valueOf(result.get("access_token")),
+            (Integer) result.get("cookie_max_age_for_access")
     );
 
     // refresh_token 담기
     CookieUtil.deleteCookie(request, response, REFRESH_TOKEN);
     CookieUtil.addCookie(
-      response, REFRESH_TOKEN, String.valueOf(result.get("refresh_token")),
-      (Integer) result.get("cookie_max_age")
+            response, REFRESH_TOKEN, String.valueOf(result.get("refresh_token")),
+            (Integer) result.get("cookie_max_age")
     );
 
     return new ApiResponse(new ApiResponseHeader(200, "회원가입에 성공하였습니다."), result);
@@ -90,11 +90,11 @@ public class MemberController {
   @Operation(summary = "회원탈퇴")
   @Tag(name = "[화면]-마이페이지")
   public ApiResponse resignMember(
-    HttpServletRequest request,
-    @CurrentAuthPrincipal User memberPrincipal
+          HttpServletRequest request,
+          @CurrentAuthPrincipal User memberPrincipal
   ) {
     this.memberService.removeMember(
-      memberPrincipal.getUsername(), HeaderUtil.getAccessToken(request));
+            memberPrincipal.getUsername(), HeaderUtil.getAccessToken(request));
     return ApiResponse.success("resign_member", true);
   }
 
@@ -102,12 +102,12 @@ public class MemberController {
   @Operation(summary = "닉네임 중복 확인")
   @Tag(name = "[화면]-로그인/회원가입")
   public ApiResponse checkNickname(
-    @RequestParam(name = "nickname") String nickname
+          @RequestParam(name = "nickname") String nickname
   ) {
     boolean duplicateConfirm = this.memberService.checkDuplicateNickname(nickname);
 
     return duplicateConfirm ? ApiResponse.success("exist_confirm", true)
-      : ApiResponse.success("exist_confirm", false);
+            : ApiResponse.success("exist_confirm", false);
   }
 
   @PutMapping("/edit/nickname")
@@ -115,8 +115,8 @@ public class MemberController {
   @Operation(summary = "닉네임 수정 요청")
   @Tag(name = "[화면]-마이페이지")
   public ApiResponse editNickname(
-    @CurrentAuthPrincipal User memberPrincipal,
-    @RequestParam(name = "nickname") String nickname
+          @CurrentAuthPrincipal User memberPrincipal,
+          @RequestParam(name = "nickname") String nickname
   ) {
     this.memberService.editNickname(memberPrincipal.getUsername(), nickname);
     return ApiResponse.success("edit_nickname", true);
@@ -127,7 +127,7 @@ public class MemberController {
   @Operation(summary = "회원 가입 여부")
   @Tag(name = "[화면]-로그인/회원가입")
   public ApiResponse checkRegisterMember(
-    @CurrentAuthPrincipal User memberPrincipal
+          @CurrentAuthPrincipal User memberPrincipal
   ) {
     Map<String, Integer> result = new HashMap<>();
     int isRegister = this.memberService.checkRegister(memberPrincipal.getUsername());
@@ -149,8 +149,8 @@ public class MemberController {
   @Operation(summary = "로그 아웃")
   @Tag(name = "[화면]-마이페이지")
   public ApiResponse logout(
-    HttpServletRequest request,
-    @CurrentAuthPrincipal User memberPrincipal
+          HttpServletRequest request,
+          @CurrentAuthPrincipal User memberPrincipal
   ) {
     String accessToken = HeaderUtil.getAccessToken(request);
     AuthToken authToken = tokenProvider.convertAuthToken(accessToken);
@@ -167,7 +167,7 @@ public class MemberController {
   @Operation(summary = "찜 목록 조회")
   @Tag(name = "[화면]-찜")
   public ApiResponse getMemberWishTownList(
-    @CurrentAuthPrincipal User memberPrincipal
+          @CurrentAuthPrincipal User memberPrincipal
   ) {
 
     return ApiResponse.success(memberService.getMemberWishList(memberPrincipal.getUsername()));
@@ -178,11 +178,14 @@ public class MemberController {
   @Operation(summary = "찜 등록/해제")
   @Tag(name = "[화면]-찜")
   public ApiResponse setMemberWishTown(
-    @CurrentAuthPrincipal User memberPrincipal,
-    @RequestParam String object_id
+          @CurrentAuthPrincipal User memberPrincipal,
+          @RequestParam String object_id
   ) {
 
-    return ApiResponse.success("wishTown", this.memberService.setMemberWishTown(object_id, memberPrincipal.getUsername()));
+    return ApiResponse.success(
+            "wishTown",
+            this.memberService.setMemberWishTown(object_id, memberPrincipal.getUsername())
+    );
   }
 
 
