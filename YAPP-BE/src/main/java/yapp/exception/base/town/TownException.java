@@ -11,4 +11,10 @@ public class TownException {
     }
   }
 
+  public static class MoodNotFound extends BusinessException {
+    public MoodNotFound(String... message) {
+      super(ErrorCodes.ENTITY_NOT_FOUND(String.join(", ", message)));
+    }
+  }
+
 }

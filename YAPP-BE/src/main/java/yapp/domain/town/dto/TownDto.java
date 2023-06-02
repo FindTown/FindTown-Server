@@ -13,6 +13,7 @@ public class TownDto {
   private Long objectId;
   private Place place;
   private TownSubway townSubway;
+  private String[] moods;
   private String reliefYn;
   private int lifeRate;
   private int crimeRate;
@@ -26,14 +27,14 @@ public class TownDto {
 
   @QueryProjection
   public TownDto(
-    Long objectId,
-    Place place,
-    TownSubway townSubway,
-    String reliefYn,
-    int lifeRate,
-    int crimeRate,
-    int trafficRate,
-    String townIntroduction
+          Long objectId,
+          Place place,
+          TownSubway townSubway,
+          String reliefYn,
+          int lifeRate,
+          int crimeRate,
+          int trafficRate,
+          String townIntroduction
   ) {
     this.objectId = objectId;
     this.place = place;

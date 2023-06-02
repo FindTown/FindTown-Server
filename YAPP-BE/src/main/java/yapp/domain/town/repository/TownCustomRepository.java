@@ -9,19 +9,21 @@ import yapp.domain.town.entity.Town;
 public interface TownCustomRepository {
 
   List<TownDto> getTownFilterList(
-    FilterStatus filterStatus,
-    List<String> stationCondition
+          FilterStatus filterStatus,
+          List<String> stationCondition
   );
 
   List<Town> getTownSearchList(
-    String sggNm
+          String sggNm
   );
 
   List<TownDetailDto> getTownDetailInfo(
-    Long objectId
+          Long objectId
   );
 
   List<Town> getMemberWishTownList(
-    String memberId
+          String memberId
   );
+
+  List<Town> getTownByObjectId(Long objectId);
 }

@@ -11,19 +11,22 @@ public class Resident {
   private String residentAddress;
 
   private String residentReview;
+  private String[] moods;
 
   private int residentYear;
 
   private int residentMonth;
 
   public Resident(
-    String residentAddress,
-    String residentReview,
-    int residentYear,
-    int residentMonth
+          String residentAddress,
+          String residentReview,
+          String[] moods,
+          int residentYear,
+          int residentMonth
   ) {
     this.residentAddress = residentAddress;
     this.residentReview = residentReview;
+    this.moods = moods;
     this.residentYear = residentYear;
     this.residentMonth = residentMonth;
   }

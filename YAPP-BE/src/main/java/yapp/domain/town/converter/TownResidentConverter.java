@@ -10,16 +10,17 @@ import yapp.domain.town.entity.TownResident;
 public class TownResidentConverter {
 
   public TownResident toEntity(
-    MemberSignUpRequest memberSignUpRequest,
-    Long objectId
+          MemberSignUpRequest memberSignUpRequest,
+          Long objectId
   ) {
     return TownResident.builder()
-      .objectId(objectId)
-      .memberId(memberSignUpRequest.getMemberId())
-      .residentAddress(memberSignUpRequest.getResident().getResidentAddress())
-      .residentReview(memberSignUpRequest.getResident().getResidentReview())
-      .residentYear(memberSignUpRequest.getResident().getResidentYear())
-      .residentMonth(memberSignUpRequest.getResident().getResidentMonth())
-      .build();
+            .objectId(objectId)
+            .memberId(memberSignUpRequest.getMemberId())
+            .residentAddress(memberSignUpRequest.getResident().getResidentAddress())
+            .residentReview(memberSignUpRequest.getResident().getResidentReview())
+            .moods(String.join(",", memberSignUpRequest.getResident().getMoods()))
+            .residentYear(memberSignUpRequest.getResident().getResidentYear())
+            .residentMonth(memberSignUpRequest.getResident().getResidentMonth())
+            .build();
   }
 }

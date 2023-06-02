@@ -27,6 +27,7 @@ import yapp.domain.town.dto.response.TownSearchResponse;
 import yapp.domain.town.entity.FilterStatus;
 import yapp.domain.town.entity.Town;
 import yapp.domain.town.repository.TownCustomRepository;
+import yapp.domain.town.repository.TownMoodRepository;
 import yapp.exception.base.town.TownException.TownNotFound;
 
 @Slf4j
@@ -35,23 +36,26 @@ public class TownService {
 
   private final MemberWishTownRepository memberWishTownRepository;
   private final TownCustomRepository townCustomRepository;
+  private final TownMoodRepository townMoodRepository;
   private final TownConverter townConverter;
 
   public TownService(
-    MemberWishTownRepository memberWishTownRepository,
-    TownCustomRepository townCustomRepository,
-    TownConverter townConverter
+          MemberWishTownRepository memberWishTownRepository,
+          TownCustomRepository townCustomRepository,
+          TownMoodRepository townMoodRepository,
+          TownConverter townConverter
   ) {
     this.memberWishTownRepository = memberWishTownRepository;
     this.townCustomRepository = townCustomRepository;
+    this.townMoodRepository = townMoodRepository;
     this.townConverter = townConverter;
   }
 
   // 동네 필터
   @Transactional(readOnly = true)
   public List<TownFilterResponse> getTownFilter(
-    Optional<String> memberId,
-    TownFilterRequest townFilterRequest
+          Optional<String> memberId,
+          TownFilterRequest townFilterRequest
   ) {
     //인프라(편의시설, 운동, 의료시설, 녹지공간), 교통(호선 정보들), 회원 정보(찜 목록을 위한)  request
     Set<Long> memberWishTownList = new HashSet<>();
@@ -61,23 +65,35 @@ public class TownService {
 
     // 2. 인프라, 교통으로 동네 조회
     List<TownDto> townFilterList = townCustomRepository.getTownFilterList(
-      townFilterRequest.getFilterStatus(), townFilterRequest.getSubwayList());
+            townFilterRequest.getFilterStatus(), townFilterRequest.getSubwayList());
 
     // 2.5 동네 데이터 필터링
-    // - 동네별로 그룹화 
+    // - 동네별로 그룹화
     Map<Long, TownDto> townDataMap = new HashMap<>();
     townFilterList.forEach(
-      townData -> {
-        if (townDataMap.containsKey(townData.getObjectId())) {
-          townDataMap.get(townData.getObjectId()).getPlaceSet().add(townData.getPlace());
-          townDataMap.get(townData.getObjectId()).getTownSubwaySet().add(townData.getTownSubway());
-        } else {
-          townData.setTownSubwaySet(new HashSet<>());
-          townData.setPlaceSet(new HashSet<>());
-          townData.setSafetyRate((townData.getTrafficRate() + townData.getLifeRate()) / DIVIDE_NUM);
-          townDataMap.put(townData.getObjectId(), townData);
-        }
-      }
+            townData -> {
+              if (townDataMap.containsKey(townData.getObjectId())) {
+                townDataMap.get(townData.getObjectId())
+                        .getPlaceSet()
+                        .add(townData.getPlace());
+                townDataMap.get(townData.getObjectId())
+                        .getTownSubwaySet()
+                        .add(townData.getTownSubway());
+              } else {
+                // 2.7 townDto에 있는 objectId를 기준으로 상위 2개 동네 분위기를 조회한다.
+                String[] moods = this.townMoodRepository.findTop2ByTownObjectIdOrderByCntDesc(
+                                townData.getObjectId())
+                        .stream()
+                        .map(t -> t.getMood().getKeyword())
+                        .toArray(String[]::new);
+                townData.setMoods(moods);
+                townData.setTownSubwaySet(new HashSet<>());
+                townData.setPlaceSet(new HashSet<>());
+                townData.setSafetyRate(
+                        (townData.getTrafficRate() + townData.getLifeRate()) / DIVIDE_NUM);
+                townDataMap.put(townData.getObjectId(), townData);
+              }
+            }
     );
 
     // - filter type별 정렬
@@ -87,32 +103,32 @@ public class TownService {
     // - 찜 상태 등록
     Set<Long> finalMemberWishTownList = memberWishTownList;
     return townFilterList.stream()
-      .map(town -> townConverter.toFilterTown(town, finalMemberWishTownList))
-      .collect(Collectors.toList());
+            .map(town -> townConverter.toFilterTown(town, finalMemberWishTownList))
+            .collect(Collectors.toList());
   }
 
   @Transactional(readOnly = true)
   public List<TownSearchResponse> getTownSearch(
-    Optional<String> memberId,
-    TownSearchRequest townSearchRequest
+          Optional<String> memberId,
+          TownSearchRequest townSearchRequest
   ) {
 
     List<Town> townSearchList = townCustomRepository.getTownSearchList(
-      townSearchRequest.getSggNm());
+            townSearchRequest.getSggNm());
 
     Set<Long> memberWishTownList = new HashSet<>();
     memberWishTownList = getMemberWishTownList(memberId, memberWishTownList);
 
     Set<Long> finalMemberWishTownList = memberWishTownList;
     return townSearchList.stream()
-      .map(town -> townConverter.toSearchTown(town, finalMemberWishTownList))
-      .collect(Collectors.toList());
+            .map(town -> townConverter.toSearchTown(town, finalMemberWishTownList))
+            .collect(Collectors.toList());
   }
 
   @Transactional(readOnly = true)
   public TownInfoResponse getTownDetailInfo(
-    Optional<String> memberId,
-    Long objectId
+          Optional<String> memberId,
+          Long objectId
   ) {
     // 동내 조회
     Set<Long> memberWishTownList = new HashSet<>();
@@ -130,32 +146,40 @@ public class TownService {
   }
 
   private Set<Long> getMemberWishTownList(
-    Optional<String> memberId,
-    Set<Long> memberWishTownList
+          Optional<String> memberId,
+          Set<Long> memberWishTownList
   ) {
     if (memberId.isPresent()) {
       memberWishTownList = memberWishTownRepository.getMemberWishTownsByMemberIdAndWishStatus(
-          memberId.get(), WishStatus.YES)
-        .stream().map(town -> town.getLocation().getObjectId()).collect(Collectors.toSet());
+                      memberId.get(), WishStatus.YES)
+              .stream()
+              .map(town -> town.getLocation().getObjectId())
+              .collect(Collectors.toSet());
     }
     return memberWishTownList;
   }
 
   private void filterInfraType(
-    List<TownDto> townDtoList,
-    FilterStatus filterStatus
+          List<TownDto> townDtoList,
+          FilterStatus filterStatus
   ) {
     switch (filterStatus) {
       case MEDICAL_FACILITY_FILTER:
         townDtoList.stream()
-          .sorted(TownComparator.compareMedicalFilter)
-          .collect(Collectors.toList());
+                .sorted(TownComparator.compareMedicalFilter)
+                .collect(Collectors.toList());
       case EXERCISE_FILTER:
-        townDtoList.stream().sorted(TownComparator.compareTownFilter).collect(Collectors.toList());
+        townDtoList.stream()
+                .sorted(TownComparator.compareTownFilter)
+                .collect(Collectors.toList());
       case CONVENIENCE_FILTER:
-        townDtoList.stream().sorted(TownComparator.compareTownFilter).collect(Collectors.toList());
+        townDtoList.stream()
+                .sorted(TownComparator.compareTownFilter)
+                .collect(Collectors.toList());
       case GREENERY_FILTER:
-        townDtoList.stream().sorted(TownComparator.compareTownFilter).collect(Collectors.toList());
+        townDtoList.stream()
+                .sorted(TownComparator.compareTownFilter)
+                .collect(Collectors.toList());
       default:
     }
   }
