@@ -24,8 +24,8 @@ public class TownConverter {
   ) {
     return TownFilterResponse.builder()
             .objectId(townDto.getObjectId())
-            .townIntroduction(townDto.getTownIntroduction())
             .moods(townDto.getMoods())
+            .sggnm(townDto.getSggnm())
             .safetyRate(townDto.getSafetyRate())
             .lifeRate(townDto.getLifeRate())
             .crimeRate(townDto.getCrimeRate())
@@ -37,11 +37,12 @@ public class TownConverter {
 
   public TownSearchResponse toSearchTown(
           Town town,
-          Set<Long> memberWishTownList
+          Set<Long> memberWishTownList,
+          String[] moods
   ) {
     return TownSearchResponse.builder()
             .objectId(town.getObjectId())
-            .townIntroduction(town.getTownIntroduction())
+            .moods(moods)
             .wishTown(memberWishTownList.contains(town.getObjectId()))
             .build();
   }

@@ -7,6 +7,7 @@ import lombok.Getter;
 @Builder
 public class TownSearchResponse {
   private Long objectId;
-  private String townIntroduction;
+  private String[] moods;
+  private String sggnm;
   private boolean wishTown;
 }

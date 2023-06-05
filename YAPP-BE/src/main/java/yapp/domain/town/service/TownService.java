@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import yapp.common.domain.Location;
+import yapp.common.repository.LocationRepository;
 import yapp.domain.member.entity.WishStatus;
 import yapp.domain.member.repository.MemberWishTownRepository;
 import yapp.domain.town.comparator.TownComparator;
@@ -37,17 +39,20 @@ public class TownService {
   private final MemberWishTownRepository memberWishTownRepository;
   private final TownCustomRepository townCustomRepository;
   private final TownMoodRepository townMoodRepository;
+  private final LocationRepository locationRepository;
   private final TownConverter townConverter;
 
   public TownService(
           MemberWishTownRepository memberWishTownRepository,
           TownCustomRepository townCustomRepository,
           TownMoodRepository townMoodRepository,
+          LocationRepository locationRepository,
           TownConverter townConverter
   ) {
     this.memberWishTownRepository = memberWishTownRepository;
     this.townCustomRepository = townCustomRepository;
     this.townMoodRepository = townMoodRepository;
+    this.locationRepository = locationRepository;
     this.townConverter = townConverter;
   }
 
@@ -67,6 +72,11 @@ public class TownService {
     List<TownDto> townFilterList = townCustomRepository.getTownFilterList(
             townFilterRequest.getFilterStatus(), townFilterRequest.getSubwayList());
 
+    // 2.4 구 검색
+    Map<Long, Location> objectSggNmMap = this.locationRepository.getLocationsByObjectIdIn(
+                    townFilterList.stream().map(TownDto::getObjectId).collect(Collectors.toList()))
+            .stream().collect(Collectors.toMap(Location::getObjectId, location -> location));
+
     // 2.5 동네 데이터 필터링
     // - 동네별로 그룹화
     Map<Long, TownDto> townDataMap = new HashMap<>();
@@ -81,11 +91,8 @@ public class TownService {
                         .add(townData.getTownSubway());
               } else {
                 // 2.7 townDto에 있는 objectId를 기준으로 상위 2개 동네 분위기를 조회한다.
-                String[] moods = this.townMoodRepository.findTop2ByTownObjectIdOrderByCntDesc(
-                                townData.getObjectId())
-                        .stream()
-                        .map(t -> t.getMood().getKeyword())
-                        .toArray(String[]::new);
+                String[] moods = getTownMoods(townData.getObjectId());
+                townData.setSggnm(objectSggNmMap.get(townData.getObjectId()).getSggNm());
                 townData.setMoods(moods);
                 townData.setTownSubwaySet(new HashSet<>());
                 townData.setPlaceSet(new HashSet<>());
@@ -107,6 +114,13 @@ public class TownService {
             .collect(Collectors.toList());
   }
 
+  private String[] getTownMoods(Long objectId) {
+    return this.townMoodRepository.findTop2ByTownObjectIdOrderByCntDesc(objectId)
+            .stream()
+            .map(t -> t.getMood().getKeyword())
+            .toArray(String[]::new);
+  }
+
   @Transactional(readOnly = true)
   public List<TownSearchResponse> getTownSearch(
           Optional<String> memberId,
@@ -116,12 +130,17 @@ public class TownService {
     List<Town> townSearchList = townCustomRepository.getTownSearchList(
             townSearchRequest.getSggNm());
 
+    //동네마다 분위기 상위 2개 조회
+    Map<Long, String[]> townMoodsMap = townSearchList.stream()
+            .collect(Collectors.toMap(Town::getObjectId, town -> getTownMoods(town.getObjectId())));
+
     Set<Long> memberWishTownList = new HashSet<>();
     memberWishTownList = getMemberWishTownList(memberId, memberWishTownList);
 
     Set<Long> finalMemberWishTownList = memberWishTownList;
     return townSearchList.stream()
-            .map(town -> townConverter.toSearchTown(town, finalMemberWishTownList))
+            .map(town -> townConverter.toSearchTown(
+                    town, finalMemberWishTownList, townMoodsMap.get(town.getObjectId())))
             .collect(Collectors.toList());
   }
 

@@ -18,6 +18,7 @@ public class TownDto {
   private int lifeRate;
   private int crimeRate;
   private int trafficRate;
+  private String sggnm;
   private String townIntroduction;
 
   private boolean wishTown = false;

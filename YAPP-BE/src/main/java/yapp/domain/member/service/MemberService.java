@@ -295,14 +295,34 @@ public class MemberService {
 
   public HashMap<String, List<MemberWishTownDto>> getMemberWishList(String memberId) {
 
-    HashMap<String, List<MemberWishTownDto>> wishTownListHashMap = new HashMap<>();
+    //0. 찜한 동네 조회
+    List<Town> memberWishTownList = this.townCustomRepository.getMemberWishTownList(memberId);
 
-    List<MemberWishTownDto> wishTownList = this.townCustomRepository.getMemberWishTownList(
-                    memberId)
+    //1. 내가 찜한 동네 -> 분위기 조회
+    Map<Long, String[]> townMoodsMap = memberWishTownList.stream()
+            .collect(Collectors.toMap(
+                    Town::getObjectId,
+                    town -> townMoodRepository.findTop2ByTownObjectIdOrderByCntDesc(
+                                    town.getObjectId())
+                            .stream()
+                            .map(t -> t.getMood().getKeyword())
+                            .toArray(String[]::new)
+            ));
+
+    //2. 구 정보 출력
+    Map<Long, Location> objectSggNmMap = this.locationRepository.getLocationsByObjectIdIn(
+                    memberWishTownList.stream().map(Town::getObjectId).collect(Collectors.toList()))
+            .stream().collect(Collectors.toMap(Location::getObjectId, location -> location));
+
+    List<MemberWishTownDto> wishTownList = memberWishTownList
             .stream()
-            .map(memberWishTownConverter::toMemberWishTownDto)
+            .map(town -> memberWishTownConverter.toMemberWishTownDto(
+                    town, townMoodsMap.get(town.getObjectId()),
+                    objectSggNmMap.get(town.getObjectId()).getSggNm()
+            ))
             .collect(Collectors.toList());
 
+    HashMap<String, List<MemberWishTownDto>> wishTownListHashMap = new HashMap<>();
     wishTownListHashMap.put("townList", wishTownList);
 
     return wishTownListHashMap;

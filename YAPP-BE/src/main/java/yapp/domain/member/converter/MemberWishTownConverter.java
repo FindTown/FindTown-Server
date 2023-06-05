@@ -10,12 +10,15 @@ import yapp.domain.town.entity.Town;
 public class MemberWishTownConverter {
 
   public MemberWishTownDto toMemberWishTownDto(
-    Town town
-  ){
+          Town town,
+          String[] moods,
+          String sggnm
+  ) {
     return MemberWishTownDto.builder()
-      .objectId(town.getObjectId())
-      .townExplanation(town.getTownIntroduction())
-      .build();
+            .objectId(town.getObjectId())
+            .moods(moods)
+            .sggnm(sggnm)
+            .build();
   }
 
 }
