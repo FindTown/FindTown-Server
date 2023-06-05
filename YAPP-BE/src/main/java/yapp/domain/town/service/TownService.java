@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import yapp.common.domain.Location;
 import yapp.common.repository.LocationRepository;
 import yapp.domain.member.entity.WishStatus;
 import yapp.domain.member.repository.MemberWishTownRepository;
@@ -72,12 +71,7 @@ public class TownService {
     List<TownDto> townFilterList = townCustomRepository.getTownFilterList(
             townFilterRequest.getFilterStatus(), townFilterRequest.getSubwayList());
 
-    // 2.4 구 검색
-    Map<Long, Location> objectSggNmMap = this.locationRepository.getLocationsByObjectIdIn(
-                    townFilterList.stream().map(TownDto::getObjectId).collect(Collectors.toList()))
-            .stream().collect(Collectors.toMap(Location::getObjectId, location -> location));
-
-    // 2.5 동네 데이터 필터링
+    // 2.1 동네 데이터 필터링
     // - 동네별로 그룹화
     Map<Long, TownDto> townDataMap = new HashMap<>();
     townFilterList.forEach(
@@ -90,9 +84,8 @@ public class TownService {
                         .getTownSubwaySet()
                         .add(townData.getTownSubway());
               } else {
-                // 2.7 townDto에 있는 objectId를 기준으로 상위 2개 동네 분위기를 조회한다.
+                // 2.2 townDto에 있는 objectId를 기준으로 상위 2개 동네 분위기를 조회한다.
                 String[] moods = getTownMoods(townData.getObjectId());
-                townData.setSggnm(objectSggNmMap.get(townData.getObjectId()).getSggNm());
                 townData.setMoods(moods);
                 townData.setTownSubwaySet(new HashSet<>());
                 townData.setPlaceSet(new HashSet<>());

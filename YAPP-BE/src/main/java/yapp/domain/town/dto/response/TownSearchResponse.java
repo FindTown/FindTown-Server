@@ -8,6 +8,5 @@ import lombok.Getter;
 public class TownSearchResponse {
   private Long objectId;
   private String[] moods;
-  private String sggnm;
   private boolean wishTown;
 }
