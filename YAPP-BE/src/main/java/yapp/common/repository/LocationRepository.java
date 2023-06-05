@@ -14,4 +14,6 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
   Optional<Location> getLocationByAdmNm(String admNm);
 
   List<Location> getLocationsByAdmNmIn(List<String> admNmList);
+
+  List<Location> getLocationsByObjectIdIn(List<Long> objectIds);
 }

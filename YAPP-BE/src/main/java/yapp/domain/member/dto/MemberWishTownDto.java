@@ -9,13 +9,16 @@ import lombok.Setter;
 @Builder
 public class MemberWishTownDto {
   private Long objectId;
-  private String townExplanation;
+  private String[] moods;
+  private String sggnm;
 
-  public MemberWishTownDto (
-    Long objectId,
-    String townExplanation
+  public MemberWishTownDto(
+          Long objectId,
+          String[] moods,
+          String sggnm
   ) {
     this.objectId = objectId;
-    this.townExplanation = townExplanation;
+    this.moods = moods;
+    this.sggnm = sggnm;
   }
 }
