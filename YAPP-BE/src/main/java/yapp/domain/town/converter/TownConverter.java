@@ -25,7 +25,6 @@ public class TownConverter {
     return TownFilterResponse.builder()
             .objectId(townDto.getObjectId())
             .moods(townDto.getMoods())
-            .sggnm(townDto.getSggnm())
             .safetyRate(townDto.getSafetyRate())
             .lifeRate(townDto.getLifeRate())
             .crimeRate(townDto.getCrimeRate())

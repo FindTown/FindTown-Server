@@ -11,13 +11,11 @@ public class MemberWishTownConverter {
 
   public MemberWishTownDto toMemberWishTownDto(
           Town town,
-          String[] moods,
-          String sggnm
+          String[] moods
   ) {
     return MemberWishTownDto.builder()
             .objectId(town.getObjectId())
             .moods(moods)
-            .sggnm(sggnm)
             .build();
   }
 

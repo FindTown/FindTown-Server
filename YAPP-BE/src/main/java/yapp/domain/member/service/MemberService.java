@@ -309,16 +309,10 @@ public class MemberService {
                             .toArray(String[]::new)
             ));
 
-    //2. 구 정보 출력
-    Map<Long, Location> objectSggNmMap = this.locationRepository.getLocationsByObjectIdIn(
-                    memberWishTownList.stream().map(Town::getObjectId).collect(Collectors.toList()))
-            .stream().collect(Collectors.toMap(Location::getObjectId, location -> location));
-
     List<MemberWishTownDto> wishTownList = memberWishTownList
             .stream()
             .map(town -> memberWishTownConverter.toMemberWishTownDto(
-                    town, townMoodsMap.get(town.getObjectId()),
-                    objectSggNmMap.get(town.getObjectId()).getSggNm()
+                    town, townMoodsMap.get(town.getObjectId())
             ))
             .collect(Collectors.toList());
 
