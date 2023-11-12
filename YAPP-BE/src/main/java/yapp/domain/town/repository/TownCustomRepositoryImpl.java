@@ -78,13 +78,23 @@ public class TownCustomRepositoryImpl implements
 
     @Override
     public List<Town> getTownSearchList(
-            String sggNm
+            String searchType,
+            String keyword
     ) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (searchType.equals("sgg")) {
+            builder.and(location.sggNm.contains(keyword));
+        }
+        if (searchType.equals("adm")) {
+            builder.and(location.admNm.contains(keyword));
+        }
+
         return jpaQueryFactory
                 .selectFrom(town)
                 .innerJoin(location)
                 .on(town.objectId.eq(location.objectId))
-                .where(location.sggNm.eq(sggNm), town.useStatus.eq(Y))
+                .where(builder, town.useStatus.eq(Y))
                 .fetch();
     }
 
