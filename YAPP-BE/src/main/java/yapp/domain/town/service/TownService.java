@@ -21,7 +21,6 @@ import yapp.domain.town.converter.TownConverter;
 import yapp.domain.town.dto.TownDetailDto;
 import yapp.domain.town.dto.TownDto;
 import yapp.domain.town.dto.request.TownFilterRequest;
-import yapp.domain.town.dto.request.TownSearchRequest;
 import yapp.domain.town.dto.response.TownFilterResponse;
 import yapp.domain.town.dto.response.TownInfoResponse;
 import yapp.domain.town.dto.response.TownSearchResponse;
@@ -117,11 +116,11 @@ public class TownService {
   @Transactional(readOnly = true)
   public List<TownSearchResponse> getTownSearch(
           Optional<String> memberId,
-          TownSearchRequest townSearchRequest
+          String searchType,
+          String keyword
   ) {
 
-    List<Town> townSearchList = townCustomRepository.getTownSearchList(
-            townSearchRequest.getSggNm());
+    List<Town> townSearchList = townCustomRepository.getTownSearchList(searchType, keyword);
 
     //동네마다 분위기 상위 2개 조회
     Map<Long, String[]> townMoodsMap = townSearchList.stream()
