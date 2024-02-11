@@ -64,7 +64,7 @@
 ## 🛠 Skills 
 
 ### Architecture
-<img width="334" alt="image" src="https://github.com/FindTown/FindTown-Server/assets/43923432/9fa2e8ab-6625-4daa-a94f-58571b1171d7">
+<img width="500" alt="image" src="https://github.com/FindTown/FindTown-Server/assets/43923432/9fa2e8ab-6625-4daa-a94f-58571b1171d7">
 
 -	서버 아키텍처의 경우 github Action을 통해 AWS의 Code Deploy와 Docker Hub를 통해 버전관리를 함으로서 rollback상황이 생기거나 유지보수에 용이하도록 하고 Docker Compose로 Docker Hub에 업데이트되는 jar파일과 Mysql DB, Redis로 실행시켜 서버를 운영하도록 설계하였습니다.
 -	Spring Project의 구성으로는 Domain위주로 package를 구성해서 각각의 Domain이 전체적인 기능을 관리하도록 추후 MSA설계를 염두하여 모듈화 시켰습니다. Client측과 협업을 위해 Swagger를 도입하여 API 문서화로 보다 효율적인 커뮤니케이션을 할 수 있었습니다.
@@ -87,6 +87,7 @@
 
 ### git 전략
 <img width="629" alt="image" src="https://github.com/FindTown/FindTown-Server/assets/43923432/825494c9-08ec-4022-b928-ac589670dd0a">
+
 - main(운영) - develop(개발) - feature
 
 - branch 규칙
